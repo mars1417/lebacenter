@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>乐吧公益中心</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:linear-gradient(135deg,#f0f2f5,#e4e8ee);display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:"PingFang SC","Microsoft YaHei",sans-serif;padding:20px;text-align:center;}
+.card{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);border-radius:20px;padding:40px;box-shadow:0 8px 40px rgba(0,0,0,0.06);max-width:400px;width:100%;}
+.logo{font-size:56px;margin-bottom:10px;}
+h1{font-size:32px;font-weight:800;background:linear-gradient(135deg,#ff7eb3,#f4d03f,#4785a8,#6da8a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
+p{color:#8e8e93;font-size:14px;margin-bottom:20px;line-height:1.6;}
+.spinner{width:36px;height:36px;border:3px solid #e8e8e8;border-top-color:#4785a8;border-radius:50%;animation:spin 0.8s linear infinite;margin:20px auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.footer{font-size:11px;color:#aeaeb2;margin-top:20px;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">📚</div>
+  <h1>乐吧公益中心</h1>
+  <p>正在跳转至系统入口<br>请稍候…</p>
+  <div class="spinner"></div>
+  <div class="footer">如果未自动跳转，<a href="#" id="manualLink" style="color:#4785a8;">点击这里</a></div>
+</div>
+<script>
+var target = 'http://ca60663.r23.cpolar.top';
+window.location.href = target;
+document.getElementById('manualLink').href = target;
+</script>
+</body>
+</html>
