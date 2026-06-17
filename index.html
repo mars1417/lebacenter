@@ -2,37 +2,99 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<meta http-equiv="refresh" content="1;url=https://7b230f4f.r23.cpolar.top">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>乐吧公益中心</title>
-<!-- ver: 20260611-v3 -->
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:linear-gradient(135deg,#f0f2f5,#e4e8ee);display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:"PingFang SC","Microsoft YaHei",sans-serif;padding:20px;text-align:center;}
-.card{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);border-radius:20px;padding:40px;box-shadow:0 8px 40px rgba(0,0,0,0.06);max-width:400px;width:100%;}
-.logo{font-size:56px;margin-bottom:10px;}
-h1{font-size:32px;font-weight:800;background:linear-gradient(135deg,#ff7eb3,#f4d03f,#4785a8,#6da8a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
-p{color:#8e8e93;font-size:14px;margin-bottom:20px;line-height:1.6;}
-.spinner{width:36px;height:36px;border:3px solid #e8e8e8;border-top-color:#4785a8;border-radius:50%;animation:spin 0.8s linear infinite;margin:20px auto;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.footer{font-size:11px;color:#aeaeb2;margin-top:20px;}
+body{
+  background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,122,255,0.06) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 30% at 80% 80%,rgba(175,82,222,0.05) 0%,transparent 50%),
+    linear-gradient(135deg,#f0f2f5,#e4e8ee);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+  padding:20px;text-align:center;overflow:hidden;
+}
+.card{
+  background:rgba(255,255,255,0.85);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
+  border-radius:28px;padding:50px 40px 36px;
+  box-shadow:0 24px 80px rgba(0,0,0,0.06),0 0 0 1px rgba(255,255,255,0.8);
+  max-width:460px;width:100%;animation:cardIn 0.6s cubic-bezier(0.15,0.85,0.35,1);
+}
+@keyframes cardIn{from{opacity:0;transform:scale(0.92) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.logo{font-size:48px;margin-bottom:6px;animation:logoBounce 2s ease-in-out infinite;}
+@keyframes logoBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+
+/* ===== 🎯 CSS文字揭示动画（全浏览器兼容） ===== */
+.char-wrap{display:flex;justify-content:center;gap:4px;margin:6px 0 10px;min-height:68px;flex-wrap:wrap;}
+.char{
+  display:inline-block;font-size:52px;font-weight:800;line-height:1.2;
+  background:linear-gradient(135deg,#007AFF,#AF52DE,#FF2D55,#FF9500,#34C759);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  clip-path:inset(0 100% 0 0);opacity:0;
+  animation:charReveal 0.7s cubic-bezier(0.34,1.56,0.64,1) var(--d) forwards;
+  text-shadow:none;
+}
+@keyframes charReveal{
+  0%{clip-path:inset(0 100% 0 0);transform:rotate(-10deg) scale(0.3);opacity:0;}
+  60%{clip-path:inset(0 0% 0 0);transform:rotate(3deg) scale(1.12);opacity:1;}
+  100%{clip-path:inset(0 0 0 0);transform:rotate(0deg) scale(1);opacity:1;}
+}
+/* 写完后的发光呼吸 */
+.char-wrap.glow .char{animation:glowPulse 2.5s ease-in-out infinite;}
+@keyframes glowPulse{
+  0%,100%{filter:drop-shadow(0 0 4px rgba(0,122,255,0.15));}
+  50%{filter:drop-shadow(0 0 16px rgba(175,82,222,0.35));}
+}
+
+.sub-text{color:#86868b;font-size:14px;margin:8px 0 16px;opacity:0;animation:fadeUp 0.6s ease-out 2.2s forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* 加载条 */
+.load-track{width:180px;height:3px;background:rgba(0,0,0,0.06);border-radius:4px;margin:18px auto;overflow:hidden;opacity:0;animation:showBar 0.3s ease-out 2.2s forwards;}
+.load-bar{height:100%;width:0%;border-radius:4px;
+  background:linear-gradient(90deg,#007AFF,#AF52DE,#FF2D55,#FF9500,#34C759);
+  background-size:200% 100%;
+  animation:loadFill 1.5s ease-in 2.4s forwards,gradShift 2s linear 2.4s infinite;}
+@keyframes loadFill{to{width:100%;}}
+@keyframes gradShift{to{background-position:200% 0;}}
+@keyframes showBar{to{opacity:1;}}
+
+.footer{font-size:11px;color:#aeaeb2;opacity:0;animation:fadeUp 0.5s ease-out 3.5s forwards;}
+.footer a{color:#007AFF;text-decoration:none;}
+.footer a:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
 <div class="card">
   <div class="logo">📚</div>
-  <h1>乐吧公益中心</h1>
-  <p>点击下方按钮进入系统</p>
-  <a id="manualLink" href="https://7b230f4f.r23.cpolar.top" style="display:inline-block;background:linear-gradient(135deg,#4785a8,#6da8a0);color:#fff;padding:14px 40px;border-radius:50px;font-size:18px;font-weight:700;text-decoration:none;margin:10px 0;box-shadow:0 4px 20px rgba(71,133,168,0.3);">🚀 进入乐吧公益中心</a>
-  <p style="color:#aeaeb2;font-size:12px;margin-top:4px;">如果按钮无法点击，请复制下方地址打开</p>
-  <p id="currentUrl" style="font-size:11px;color:#aeaeb2;word-break:break-all;background:#f5f5f5;padding:8px 12px;border-radius:8px;margin:4px 0 0;">https://7b230f4f.r23.cpolar.top</p>
+  <div class="char-wrap" id="charWrap">
+    <span class="char" style="--d:0.0s">乐</span>
+    <span class="char" style="--d:0.25s">吧</span>
+    <span class="char" style="--d:0.50s">公</span>
+    <span class="char" style="--d:0.75s">益</span>
+    <span class="char" style="--d:1.00s">中</span>
+    <span class="char" style="--d:1.25s">心</span>
+  </div>
+  <div class="sub-text">✨ 正在加载系统入口</div>
+  <div class="load-track"><div class="load-bar"></div></div>
+  <div class="footer">如果未自动跳转，<a href="#" id="manualLink">点击这里</a></div>
 </div>
 <script>
-var target = "https://7b230f4f.r23.cpolar.top";
-window.location.href = target;
+// 所有字揭示完后触发发光
+var chars = document.querySelectorAll('.char');
+var total = chars.length;
+var done = 0;
+chars.forEach(function(el){
+  el.addEventListener('animationend', function(){
+    done++;
+    if(done >= total){
+      document.getElementById('charWrap').classList.add('glow');
+    }
+  });
+});
+// 自动跳转 (相对路径避免循环)
+var target = "https://329ce5e1.r18.vip.cpolar.cn";
+setTimeout(function(){ window.location.href = target; }, 3700);
 document.getElementById('manualLink').href = target;
 </script>
 </body>
