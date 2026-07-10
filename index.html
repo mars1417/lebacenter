@@ -162,24 +162,21 @@ chars.forEach(function(el){
     }
   });
 });
-// 🚀 Service Worker版本检测：如果旧版SW还在用，强制更新并刷新
-if ('serviceWorker' in navigator) {
+// 🚀 Service Worker版本检测：如果旧版SW还在用，强制更新并刷新（仅首次）
+if ('serviceWorker' in navigator && !sessionStorage.getItem('sw_updated')) {
+  sessionStorage.setItem('sw_updated', '1');
   navigator.serviceWorker.getRegistration('/lebacenter/').then(function(reg) {
-    if (reg && reg.active) {
-      // 检查SW脚本是否包含v2标识
+    if (reg && reg.active && !reg.active.scriptURL.includes('leba-v2')) {
       fetch('/lebacenter/sw.js', {cache:'no-store'}).then(function(r){return r.text();}).then(function(code){
         if (code.includes('leba-v2')) {
-          // 新SW已部署到CDN但浏览器可能还在用旧版
           reg.update().then(function() {
-            // 如果新SW正在等待激活，触发skipWaiting
             if (reg.installing) {
               reg.installing.postMessage({type:'SKIP_WAITING'});
             }
-            // 重新加载让新SW接管
             window.location.reload();
           });
         }
-      }).catch(function(){ /* sw.js不可达，忽略 */ });
+      }).catch(function(){});
     }
   });
 }
