@@ -1,12 +1,12 @@
-// 乐吧公益中心 — Service Worker
-// 固定入口: mars1417.github.io/lebacenter/
-const CACHE = 'leba-v1';
+// 乐吧公益中心 — Service Worker v2
+// 核心改进: 入口页永不用缓存（network-first），静态资源用缓存
+const CACHE = 'leba-v2';
+const STATIC_CACHE = 'leba-static-v2';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll([
-      '/lebacenter/',
+    caches.open(STATIC_CACHE).then(c => c.addAll([
       '/lebacenter/manifest.json',
       '/lebacenter/icon-192.png',
       '/lebacenter/icon-512.png'
@@ -15,11 +15,32 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
+  e.waitUntil(
+    Promise.all([
+      clients.claim(),
+      // 删除旧版缓存
+      caches.keys().then(function(keys) {
+        return Promise.all(
+          keys.filter(function(k) { return k !== CACHE && k !== STATIC_CACHE; })
+            .map(function(k) { return caches.delete(k); })
+        );
+      })
+    ])
+  );
 });
 
 self.addEventListener('fetch', (e) => {
+  // 入口页（HTML导航）→ 网络优先，SW不缓存HTML
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(function(res) { return res; })
+        .catch(function() { return caches.match(e.request); })
+    );
+    return;
+  }
+  // 静态资源 → 缓存优先
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
+    caches.match(e.request).then(function(r) { return r || fetch(e.request); })
   );
 });
