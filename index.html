@@ -2,7 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="/lebacenter/manifest.json">
 <title>乐吧公益中心</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -78,6 +81,15 @@ body{
 .enter-btn:active{transform:scale(0.96);}
 .bookmark-tip{color:#aeaeb2;font-size:11px;margin-top:10px;opacity:0;animation:fadeUp 0.6s ease-out 4.5s forwards;}
 
+/* 📲 PWA安装按钮 */
+.pwa-area{margin-top:14px;padding-top:14px;opacity:0;animation:fadeUp 0.5s ease-out 5s forwards;}
+.pwa-btn{
+  background:none;border:none;font-size:12px;color:#86868b;cursor:pointer;
+  padding:6px 14px;border-radius:8px;transition:all 0.3s;
+}
+.pwa-btn:hover{background:rgba(0,0,0,0.04);color:#4785a8;}
+.pwa-btn.installed{color:#34c759;cursor:default;}
+
 /* 🔧 健康检测弹窗 — 白玻3D液态 */
 .maint-overlay{
   position:fixed;top:0;left:0;width:100%;height:100%;
@@ -128,6 +140,9 @@ body{
   <div class="enter-area">
     <a href="#" class="enter-btn" id="enterBtn">🏛️ 进入乐吧系统</a>
     <div class="bookmark-tip">📌 收藏此页面，随时回来</div>
+    <div class="pwa-area" id="pwaArea">
+      <button class="pwa-btn" id="pwaBtn" onclick="installPWA()">📲 安装到主屏幕</button>
+    </div>
   </div>
 </div>
 <script>
@@ -173,6 +188,34 @@ function showMaintenancePopup(){
     '<div class="maint-contact">如有紧急问题请联系施老师</div>' +
     '<button class="maint-btn" onclick="this.parentElement.parentElement.remove()">我知道了</button></div>';
   document.body.appendChild(o);
+}
+// 📲 PWA: 注册Service Worker + 安装到主屏幕
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('pwaArea').style.display = 'block';
+});
+window.addEventListener('appinstalled', function(){
+  document.getElementById('pwaBtn').textContent = '✅ 已安装';
+  document.getElementById('pwaBtn').className = 'pwa-btn installed';
+});
+function installPWA(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(result){
+      if(result.outcome === 'accepted') console.log('PWA installed');
+      deferredPrompt = null;
+    });
+  } else {
+    alert('请在浏览器菜单中点击「添加到主屏幕」');
+  }
+}
+// 注册Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/lebacenter/sw.js', {scope: '/lebacenter/'});
+  });
 }
 </script>
 </body>

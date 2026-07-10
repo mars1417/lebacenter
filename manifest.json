@@ -1,0 +1,15 @@
+{
+  "name": "乐吧公益中心",
+  "short_name": "乐吧",
+  "description": "乐吧公益中心 · 晚托班管理系统",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#4785A8",
+  "orientation": "portrait",
+  "start_url": "/lebacenter/",
+  "scope": "/lebacenter/",
+  "icons": [
+    {"src": "/lebacenter/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/lebacenter/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
