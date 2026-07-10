@@ -158,7 +158,7 @@ chars.forEach(function(el){
     }
   });
 });
-// 按钮点击跳转 — 先健康检测，通了再跳
+// 按钮点击跳转 — 从raw源获取最新URL，彻底绕过CDN缓存
 var target = 'https://585412e9.r7.cpolar.cn'
 var btn = document.getElementById('enterBtn');
 btn.href = target;
@@ -167,15 +167,31 @@ btn.addEventListener('click', function(e){
   var t = this.href;
   this.textContent = '⏳ 检测中...';
   this.style.pointerEvents = 'none';
+  // 方法A: 直接尝试当前URL
   var ctrl = new AbortController();
   var to = setTimeout(function(){ ctrl.abort(); }, 5000);
   fetch(t, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
     .then(function(){ clearTimeout(to); window.location.href = t; })
     .catch(function(){
       clearTimeout(to);
-      btn.textContent = '🏛️ 进入乐吧系统';
-      btn.style.pointerEvents = 'auto';
-      showMaintenancePopup();
+      // 方法B: CDN可能缓存了旧URL → 从raw源获取最新URL
+      fetch('https://raw.githubusercontent.com/mars1417/lebacenter/main/index.html', {cache:'no-store'})
+        .then(function(r){ return r.text(); })
+        .then(function(html){
+          var m = html.match(/target = [']([^']+)[']/);
+          if(m && m[1] !== t){
+            window.location.href = m[1];  // 跳转到真实最新URL
+          } else {
+            btn.textContent = '🏛️ 进入乐吧系统';
+            btn.style.pointerEvents = 'auto';
+            showMaintenancePopup();
+          }
+        })
+        .catch(function(){
+          btn.textContent = '🏛️ 进入乐吧系统';
+          btn.style.pointerEvents = 'auto';
+          showMaintenancePopup();
+        });
     });
 });
 function showMaintenancePopup(){
