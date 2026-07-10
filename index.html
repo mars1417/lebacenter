@@ -158,37 +158,42 @@ chars.forEach(function(el){
     }
   });
 });
-// 按钮点击跳转 — 直接从raw源获取最新URL，不依赖html硬编码
+// 按钮点击 — 先读raw源最新URL再跳转（彻底绕过CDN/浏览器缓存）
+// 注意: var target 保留，gp_sync.sh自动更新它，raw源始终是最新
+var target = 'https://585412e9.r7.cpolar.cn'
 var btn = document.getElementById('enterBtn');
 btn.addEventListener('click', function(e){
   e.preventDefault();
   btn.textContent = '⏳ 检测中...';
   btn.style.pointerEvents = 'none';
-  // 直接从raw源拿最新URL（绕过CDN+浏览器缓存）
+  // 直接从raw源拿最新URL（不依赖页面自身的target，因为可能被缓存）
   fetch('https://raw.githubusercontent.com/mars1417/lebacenter/main/index.html', {cache:'no-store'})
     .then(function(r){ return r.text(); })
     .then(function(html){
       var m = html.match(/target = '([^']+)'/);
-      if(m && m[1]){
-        var ctrl = new AbortController();
-        setTimeout(function(){ ctrl.abort(); }, 5000);
-        fetch(m[1], {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
-          .then(function(){ window.location.href = m[1]; })
-          .catch(function(){
-            btn.textContent = '🏛️ 进入乐吧系统';
-            btn.style.pointerEvents = 'auto';
-            showMaintenancePopup();
-          });
-      } else {
-        btn.textContent = '🏛️ 进入乐吧系统';
-        btn.style.pointerEvents = 'auto';
-        showMaintenancePopup();
-      }
+      var url = m && m[1] ? m[1] : target;  // raw源拿不到则用自身target
+      // 检测URL是否可达，通了就跳
+      var ctrl = new AbortController();
+      setTimeout(function(){ ctrl.abort(); }, 5000);
+      fetch(url, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
+        .then(function(){ window.location.href = url; })
+        .catch(function(){
+          btn.textContent = '🏛️ 进入乐吧系统';
+          btn.style.pointerEvents = 'auto';
+          showMaintenancePopup();
+        });
     })
     .catch(function(){
-      btn.textContent = '🏛️ 进入乐吧系统';
-      btn.style.pointerEvents = 'auto';
-      showMaintenancePopup();
+      // raw源都拿不到 → 用自身target兜底
+      var ctrl = new AbortController();
+      setTimeout(function(){ ctrl.abort(); }, 5000);
+      fetch(target, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
+        .then(function(){ window.location.href = target; })
+        .catch(function(){
+          btn.textContent = '🏛️ 进入乐吧系统';
+          btn.style.pointerEvents = 'auto';
+          showMaintenancePopup();
+        });
     });
 });
 function showMaintenancePopup(){
