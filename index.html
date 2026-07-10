@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<!-- 🚫 强制不缓存：每次从服务器获取最新版本 -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link rel="manifest" href="/lebacenter/manifest.json">
 <title>乐吧公益中心</title>
 <style>
@@ -158,42 +162,23 @@ chars.forEach(function(el){
     }
   });
 });
-// 按钮点击 — 先读raw源最新URL再跳转（彻底绕过CDN/浏览器缓存）
-// 注意: var target 保留，gp_sync.sh自动更新它，raw源始终是最新
+// 按钮点击 — 检测cpolar隧道可达后跳转
+// var target 由 gp_sync.sh 自动更新，永远是最新URL
+// 页面已禁用缓存（meta no-cache），每次打开都是最新版本
 var target = 'https://585412e9.r7.cpolar.cn'
 var btn = document.getElementById('enterBtn');
 btn.addEventListener('click', function(e){
   e.preventDefault();
   btn.textContent = '⏳ 检测中...';
   btn.style.pointerEvents = 'none';
-  // 直接从raw源拿最新URL（不依赖页面自身的target，因为可能被缓存）
-  fetch('https://raw.githubusercontent.com/mars1417/lebacenter/main/index.html', {cache:'no-store'})
-    .then(function(r){ return r.text(); })
-    .then(function(html){
-      var m = html.match(/target = '([^']+)'/);
-      var url = m && m[1] ? m[1] : target;  // raw源拿不到则用自身target
-      // 检测URL是否可达，通了就跳
-      var ctrl = new AbortController();
-      setTimeout(function(){ ctrl.abort(); }, 5000);
-      fetch(url, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
-        .then(function(){ window.location.href = url; })
-        .catch(function(){
-          btn.textContent = '🏛️ 进入乐吧系统';
-          btn.style.pointerEvents = 'auto';
-          showMaintenancePopup();
-        });
-    })
+  var ctrl = new AbortController();
+  setTimeout(function(){ ctrl.abort(); }, 5000);
+  fetch(target, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
+    .then(function(){ window.location.href = target; })
     .catch(function(){
-      // raw源都拿不到 → 用自身target兜底
-      var ctrl = new AbortController();
-      setTimeout(function(){ ctrl.abort(); }, 5000);
-      fetch(target, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
-        .then(function(){ window.location.href = target; })
-        .catch(function(){
-          btn.textContent = '🏛️ 进入乐吧系统';
-          btn.style.pointerEvents = 'auto';
-          showMaintenancePopup();
-        });
+      btn.textContent = '🏛️ 进入乐吧系统';
+      btn.style.pointerEvents = 'auto';
+      showMaintenancePopup();
     });
 });
 function showMaintenancePopup(){
