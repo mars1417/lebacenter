@@ -142,7 +142,7 @@ body{
   <div class="sub-text">✨ 系统入口已就绪</div>
   <div class="load-track"><div class="load-bar"></div></div>
   <div class="enter-area">
-    <a href="#" class="enter-btn" id="enterBtn">🏛️ 进入乐吧系统</a>
+    <a href="https://585412e9.r7.cpolar.cn" class="enter-btn" id="enterBtn">🏛️ 进入乐吧系统</a>
     <div class="bookmark-tip">📌 收藏此页面，随时回来</div>
     <div class="pwa-area" id="pwaArea">
       <button class="pwa-btn" id="pwaBtn" onclick="installPWA()">📲 安装到主屏幕</button>
@@ -162,9 +162,30 @@ chars.forEach(function(el){
     }
   });
 });
+// 🚀 Service Worker版本检测：如果旧版SW还在用，强制更新并刷新
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistration('/lebacenter/').then(function(reg) {
+    if (reg && reg.active) {
+      // 检查SW脚本是否包含v2标识
+      fetch('/lebacenter/sw.js', {cache:'no-store'}).then(function(r){return r.text();}).then(function(code){
+        if (code.includes('leba-v2')) {
+          // 新SW已部署到CDN但浏览器可能还在用旧版
+          reg.update().then(function() {
+            // 如果新SW正在等待激活，触发skipWaiting
+            if (reg.installing) {
+              reg.installing.postMessage({type:'SKIP_WAITING'});
+            }
+            // 重新加载让新SW接管
+            window.location.reload();
+          });
+        }
+      }).catch(function(){ /* sw.js不可达，忽略 */ });
+    }
+  });
+}
 // 按钮点击 — 检测cpolar隧道可达后跳转
 // var target 由 gp_sync.sh 自动更新，永远是最新URL
-// 页面已禁用缓存（meta no-cache），每次打开都是最新版本
+// href 也由 gp_sync.sh 同步更新（双重保险）
 var target = 'https://585412e9.r7.cpolar.cn'
 var btn = document.getElementById('enterBtn');
 btn.addEventListener('click', function(e){
@@ -173,7 +194,9 @@ btn.addEventListener('click', function(e){
   btn.style.pointerEvents = 'none';
   var ctrl = new AbortController();
   setTimeout(function(){ ctrl.abort(); }, 5000);
-  fetch(target, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
+  // 优先用btn.href（DOM直接链接，最可靠），fallback到var target
+  var url = btn.getAttribute('href') || target;
+  fetch(url, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
     .then(function(){ window.location.href = target; })
     .catch(function(){
       btn.textContent = '🏛️ 进入乐吧系统';
