@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<!-- BUILD:20260709134838-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -50,7 +49,7 @@ body{
 .sub-text{color:#86868b;font-size:14px;margin:8px 0 16px;opacity:0;animation:fadeUp 0.6s ease-out 2.2s forwards;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
-/* 加载条 */
+/* 加载条 — 纯装饰，不控制跳转 */
 .load-track{width:180px;height:3px;background:rgba(0,0,0,0.06);border-radius:4px;margin:18px auto;overflow:hidden;opacity:0;animation:showBar 0.3s ease-out 2.2s forwards;}
 .load-bar{height:100%;width:0%;border-radius:4px;
   background:linear-gradient(90deg,#007AFF,#AF52DE,#FF2D55,#FF9500,#34C759);
@@ -60,9 +59,24 @@ body{
 @keyframes gradShift{to{background-position:200% 0;}}
 @keyframes showBar{to{opacity:1;}}
 
-.footer{font-size:11px;color:#aeaeb2;opacity:0;animation:fadeUp 0.5s ease-out 3.5s forwards;}
-.footer a{color:#007AFF;text-decoration:none;}
-.footer a:hover{text-decoration:underline;}
+/* 🏛️ 白玻3D液态入口按钮 */
+.enter-area{opacity:0;animation:fadeUp 0.8s ease-out 3.5s forwards;margin-top:8px;}
+.enter-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 36px;border-radius:999px;font-size:16px;font-weight:600;
+  background:rgba(71,133,168,0.12);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.9);
+  color:#4785a8;cursor:pointer;text-decoration:none;
+  box-shadow:0 4px 16px rgba(71,133,168,0.10),inset 0 1px 0 rgba(255,255,255,0.9);
+  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  user-select:none;
+}
+.enter-btn:hover{transform:translateY(-2px);
+  box-shadow:0 8px 28px rgba(71,133,168,0.20),inset 0 1px 0 rgba(255,255,255,0.9);
+  background:rgba(71,133,168,0.18);}
+.enter-btn:active{transform:scale(0.96);}
+.bookmark-tip{color:#aeaeb2;font-size:11px;margin-top:10px;opacity:0;animation:fadeUp 0.6s ease-out 4.5s forwards;}
 </style>
 </head>
 <body>
@@ -76,9 +90,12 @@ body{
     <span class="char" style="--d:1.00s">中</span>
     <span class="char" style="--d:1.25s">心</span>
   </div>
-  <div class="sub-text">✨ 正在加载系统入口</div>
+  <div class="sub-text">✨ 系统入口已就绪</div>
   <div class="load-track"><div class="load-bar"></div></div>
-  <div class="footer">如果未自动跳转，<a href="#" id="manualLink">点击这里</a></div>
+  <div class="enter-area">
+    <a href="#" class="enter-btn" id="enterBtn">🏛️ 进入乐吧系统</a>
+    <div class="bookmark-tip">📌 收藏此页面，随时回来</div>
+  </div>
 </div>
 <script>
 // 所有字揭示完后触发发光
@@ -93,10 +110,9 @@ chars.forEach(function(el){
     }
   });
 });
-// 自动跳转 (相对路径避免循环)
+// 按钮点击跳转到系统入口
 var target = 'https://fe8bc64.r23.cpolar.top'
-setTimeout(function(){ window.location.href = target; }, 3700);
-document.getElementById('manualLink').href = target;
+document.getElementById('enterBtn').href = target;
 </script>
 </body>
 </html>
