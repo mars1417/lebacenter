@@ -1,245 +1,97 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<!-- 🚫 强制不缓存：每次从服务器获取最新版本 -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<link rel="manifest" href="/lebacenter/manifest.json">
-<title>乐吧公益中心</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{
-  background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,122,255,0.06) 0%,transparent 60%),
-    radial-gradient(ellipse 50% 30% at 80% 80%,rgba(175,82,222,0.05) 0%,transparent 50%),
-    linear-gradient(135deg,#f0f2f5,#e4e8ee);
-  display:flex;align-items:center;justify-content:center;
-  min-height:100vh;font-family:"PingFang SC","Microsoft YaHei",sans-serif;
-  padding:20px;text-align:center;overflow:hidden;
-}
-.card{
-  background:rgba(255,255,255,0.85);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
-  border-radius:28px;padding:50px 40px 36px;
-  box-shadow:0 24px 80px rgba(0,0,0,0.06),0 0 0 1px rgba(255,255,255,0.8);
-  max-width:460px;width:100%;animation:cardIn 0.6s cubic-bezier(0.15,0.85,0.35,1);
-}
-@keyframes cardIn{from{opacity:0;transform:scale(0.92) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
-.logo{font-size:48px;margin-bottom:6px;animation:logoBounce 2s ease-in-out infinite;}
-@keyframes logoBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
-
-/* ===== 🎯 CSS文字揭示动画（全浏览器兼容） ===== */
-.char-wrap{display:flex;justify-content:center;gap:4px;margin:6px 0 10px;min-height:68px;flex-wrap:wrap;}
-.char{
-  display:inline-block;font-size:52px;font-weight:800;line-height:1.2;
-  background:linear-gradient(135deg,#007AFF,#AF52DE,#FF2D55,#FF9500,#34C759);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  clip-path:inset(0 100% 0 0);opacity:0;
-  animation:charReveal 0.7s cubic-bezier(0.34,1.56,0.64,1) var(--d) forwards;
-  text-shadow:none;
-}
-@keyframes charReveal{
-  0%{clip-path:inset(0 100% 0 0);transform:rotate(-10deg) scale(0.3);opacity:0;}
-  60%{clip-path:inset(0 0% 0 0);transform:rotate(3deg) scale(1.12);opacity:1;}
-  100%{clip-path:inset(0 0 0 0);transform:rotate(0deg) scale(1);opacity:1;}
-}
-/* 写完后的发光呼吸 */
-.char-wrap.glow .char{animation:glowPulse 2.5s ease-in-out infinite;}
-@keyframes glowPulse{
-  0%,100%{filter:drop-shadow(0 0 4px rgba(0,122,255,0.15));}
-  50%{filter:drop-shadow(0 0 16px rgba(175,82,222,0.35));}
-}
-
-.sub-text{color:#86868b;font-size:14px;margin:8px 0 16px;opacity:0;animation:fadeUp 0.6s ease-out 2.2s forwards;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-
-/* 加载条 — 纯装饰，不控制跳转 */
-.load-track{width:180px;height:3px;background:rgba(0,0,0,0.06);border-radius:4px;margin:18px auto;overflow:hidden;opacity:0;animation:showBar 0.3s ease-out 2.2s forwards;}
-.load-bar{height:100%;width:0%;border-radius:4px;
-  background:linear-gradient(90deg,#007AFF,#AF52DE,#FF2D55,#FF9500,#34C759);
-  background-size:200% 100%;
-  animation:loadFill 1.5s ease-in 2.4s forwards,gradShift 2s linear 2.4s infinite;}
-@keyframes loadFill{to{width:100%;}}
-@keyframes gradShift{to{background-position:200% 0;}}
-@keyframes showBar{to{opacity:1;}}
-
-/* 🏛️ 白玻3D液态入口按钮 */
-.enter-area{opacity:0;animation:fadeUp 0.8s ease-out 3.5s forwards;margin-top:8px;}
-.enter-btn{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:14px 36px;border-radius:999px;font-size:16px;font-weight:600;
-  background:rgba(71,133,168,0.12);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,0.9);
-  color:#4785a8;cursor:pointer;text-decoration:none;
-  box-shadow:0 4px 16px rgba(71,133,168,0.10),inset 0 1px 0 rgba(255,255,255,0.9);
-  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  user-select:none;
-}
-.enter-btn:hover{transform:translateY(-2px);
-  box-shadow:0 8px 28px rgba(71,133,168,0.20),inset 0 1px 0 rgba(255,255,255,0.9);
-  background:rgba(71,133,168,0.18);}
-.enter-btn:active{transform:scale(0.96);}
-.bookmark-tip{color:#aeaeb2;font-size:11px;margin-top:10px;opacity:0;animation:fadeUp 0.6s ease-out 4.5s forwards;}
-
-/* 📲 PWA安装按钮 */
-.pwa-area{margin-top:14px;padding-top:14px;opacity:0;animation:fadeUp 0.5s ease-out 5s forwards;}
-.pwa-btn{
-  background:none;border:none;font-size:12px;color:#86868b;cursor:pointer;
-  padding:6px 14px;border-radius:8px;transition:all 0.3s;
-}
-.pwa-btn:hover{background:rgba(0,0,0,0.04);color:#4785a8;}
-.pwa-btn.installed{color:#34c759;cursor:default;}
-
-/* 🔧 健康检测弹窗 — 白玻3D液态 */
-.maint-overlay{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,0.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  display:flex;align-items:center;justify-content:center;z-index:99999;
-  animation:maintFadeIn 0.25s ease-out;
-}
-@keyframes maintFadeIn{from{opacity:0;}to{opacity:1;}}
-.maint-popup{
-  background:rgba(255,255,255,0.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border-radius:28px;padding:36px 40px 28px;max-width:360px;width:90%;
-  box-shadow:0 24px 80px rgba(0,0,0,0.10),0 0 0 1px rgba(255,255,255,0.8);
-  text-align:center;animation:maintPop 0.4s cubic-bezier(0.16,1,0.3,1);
-  position:relative;overflow:hidden;
-}
-.maint-popup::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#4785a8,#6da8a0,#4785a8);
-  background-size:200% 100%;animation:gradShift 2s linear infinite;
-}
-@keyframes maintPop{from{opacity:0;transform:scale(0.92) translateY(16px);}to{opacity:1;transform:scale(1) translateY(0);}}
-.maint-icon{font-size:48px;margin-bottom:12px;}
-.maint-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:8px;}
-.maint-desc{font-size:14px;color:#666;line-height:1.6;margin-bottom:16px;}
-.maint-contact{font-size:12px;color:#999;margin-bottom:16px;}
-.maint-btn{
-  background:rgba(71,133,168,0.1);border:none;border-radius:14px;
-  padding:10px 32px;font-size:15px;font-weight:600;color:#4785a8;
-  cursor:pointer;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-}
-.maint-btn:hover{background:#4785a8;color:#fff;transform:translateY(-1px);}
-.maint-btn:active{transform:scale(0.96);}
-</style>
-</head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><link rel="manifest" href="/lebacenter/manifest.json"><title>乐吧公益中心</title><style>*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,122,255,0.06) 0%,transparent 60%),radial-gradient(ellipse 50% 30% at 80% 80%,rgba(175,82,222,0.05) 0%,transparent 50%),linear-gradient(135deg,#f0f2f5,#e4e8ee);min-height:100vh;font-family:"PingFang SC","Microsoft YaHei",sans-serif;display:flex;align-items:center;justify-content:center;padding:20px}
+.wrap{max-width:440px;width:100%;animation:in 0.6s cubic-bezier(0.15,0.85,0.35,1)}
+@keyframes in{from{opacity:0;transform:scale(0.92) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.hd{text-align:center;margin-bottom:24px}
+.hd .lg{font-size:42px;margin-bottom:4px}
+.hd h1{font-size:30px;font-weight:800;background:linear-gradient(135deg,#007AFF,#AF52DE,#FF2D55,#FF9500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px}
+.hd .dt{font-size:11px;color:#aeaeb2;margin-top:2px}
+.card{display:flex;align-items:center;background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:16px;padding:0;margin-bottom:10px;text-decoration:none;border:1px solid rgba(255,255,255,0.6);overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.03);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);animation:cf 0.5s cubic-bezier(0.34,1.56,0.64,1) var(--d) forwards;opacity:0;transform:translateY(10px)}
+@keyframes cf{to{opacity:1;transform:translateY(0)}}
+.card:active{transform:scale(0.97)}
+.card-bar{width:5px;flex-shrink:0;align-self:stretch}
+.card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin:12px;flex-shrink:0}
+.card-body{flex:1;padding:10px 0;min-width:0}
+.card-title{font-size:15px;font-weight:700;color:#1d1d1f;margin-bottom:2px}
+.card-desc{font-size:11px;color:#86868b;line-height:1.4}
+.card-tag{display:inline-block;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;margin-top:4px}
+.tag-green{background:rgba(52,199,89,0.1);color:#34C759}
+.tag-gold{background:rgba(255,149,0,0.1);color:#FF9500}
+.tag-pink{background:rgba(255,45,85,0.08);color:#FF2D55}
+.ft{text-align:center;padding:16px 0 4px;font-size:10px;color:#aeaeb2;line-height:1.6}
+</style></head>
 <body>
-<div class="card">
-  <div class="logo">📚</div>
-  <div class="char-wrap" id="charWrap">
-    <span class="char" style="--d:0.0s">乐</span>
-    <span class="char" style="--d:0.25s">吧</span>
-    <span class="char" style="--d:0.50s">公</span>
-    <span class="char" style="--d:0.75s">益</span>
-    <span class="char" style="--d:1.00s">中</span>
-    <span class="char" style="--d:1.25s">心</span>
+<div class="wrap">
+  <div class="hd">
+    <div class="lg">📚</div>
+    <h1>乐吧公益中心</h1>
+    <div class="dt" id="todayDate"></div>
   </div>
-  <div class="sub-text">✨ 系统入口已就绪</div>
-  <div class="load-track"><div class="load-bar"></div></div>
-  <div class="enter-area">
-    <a href="https://6f3990ac.r23.cpolar.top" class="enter-btn" id="enterBtn">🏛️ 进入乐吧系统</a>
-    <div class="bookmark-tip">📌 收藏此页面，随时回来</div>
-    <div class="pwa-area" id="pwaArea">
-      <button class="pwa-btn" id="pwaBtn" onclick="installPWA()">📲 安装到主屏幕</button>
+
+  <!-- 1 -->
+  <a class="card" href="https://6f3990ac.r23.cpolar.top/admin/dashboard" style="--d:0s">
+    <div class="card-bar" style="background:linear-gradient(180deg,#34C759,#28a745)"></div>
+    <div class="card-icon" style="background:rgba(52,199,89,0.1);color:#34C759">🏢</div>
+    <div class="card-body">
+      <div class="card-title">机构管理端</div>
+      <div class="card-desc">入园签退 · 实时看板 · 照片墙 · 数据统计</div>
+      <span class="card-tag tag-green">无需登录 · 公开访问</span>
     </div>
-  </div>
+    <div style="padding-right:16px;font-size:16px;color:#aeaeb2">→</div>
+  </a>
+
+  <!-- 2 -->
+  <a class="card" href="https://6f3990ac.r23.cpolar.top/crm2/login" style="--d:0.1s;border:2px solid rgba(71,133,168,0.2)">
+    <div class="card-bar" style="background:linear-gradient(180deg,#4785a8,#6da8a0)"></div>
+    <div class="card-icon" style="background:rgba(71,133,168,0.1);color:#4785a8">⚡</div>
+    <div class="card-body">
+      <div class="card-title" style="background:linear-gradient(135deg,#4785a8,#6da8a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent">晚托CRM管理系统</div>
+      <div class="card-desc">学生管理 · 签到 · 作业 · 评估 · 食谱 · 报告</div>
+      <span class="card-tag tag-gold">🔥 需员工账号登录</span>
+    </div>
+    <div style="padding-right:16px;font-size:16px;color:#aeaeb2">→</div>
+  </a>
+
+  <!-- 3 -->
+  <a class="card" href="https://6f3990ac.r23.cpolar.top/parent/login" style="--d:0.2s">
+    <div class="card-bar" style="background:linear-gradient(180deg,#f4d03f,#ff7eb3)"></div>
+    <div class="card-icon" style="background:rgba(244,208,63,0.1);color:#f4d03f">👪</div>
+    <div class="card-body">
+      <div class="card-title">家长服务端</div>
+      <div class="card-desc">查看孩子签到 · 作业 · 在校状态 · 能力评估 · 食谱</div>
+      <span class="card-tag tag-pink">手机号登录 · 只读查看</span>
+    </div>
+    <div style="padding-right:16px;font-size:16px;color:#aeaeb2">→</div>
+  </a>
+
+  <!-- 4 -->
+  <a class="card" href="https://6f3990ac.r23.cpolar.top/public/courses" style="--d:0.3s;border:2px solid rgba(109,168,160,0.3)">
+    <div class="card-bar" style="background:linear-gradient(180deg,#6da8a0,#4785a8)"></div>
+    <div class="card-icon" style="background:rgba(109,168,160,0.1);color:#6da8a0">🎓</div>
+    <div class="card-body">
+      <div class="card-title" style="background:linear-gradient(135deg,#6da8a0,#4785a8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">课程报名</div>
+      <div class="card-desc">公益免费 · 半公益亲民 · 暑假托班 · 在线报名</div>
+      <span class="card-tag tag-green">无需登录 · 公开报名</span>
+    </div>
+    <div style="padding-right:16px;font-size:16px;color:#aeaeb2">→</div>
+  </a>
+
+  <!-- 5: FitLog -->
+  <a class="card" href="https://6f3990ac.r23.cpolar.top/health/login" style="--d:0.4s;border:2px solid rgba(74,144,217,0.25)">
+    <div class="card-bar" style="background:linear-gradient(180deg,#4A90D9,#AF52DE)"></div>
+    <div class="card-icon" style="background:linear-gradient(135deg,#4A90D9,#AF52DE);color:#fff;">F</div>
+    <div class="card-body">
+      <div class="card-title" style="background:linear-gradient(135deg,#4A90D9,#AF52DE);-webkit-background-clip:text;-webkit-text-fill-color:transparent">FitLog健康日志</div>
+      <div class="card-desc">每日打卡 · 体重追踪 · 训练记录 · 卡路里计算</div>
+      <span class="card-tag tag-gold">🔥 需账号登录 · 双人PK</span>
+    </div>
+    <div style="padding-right:16px;font-size:16px;color:#aeaeb2">→</div>
+  </a>
+
+  <div class="ft">数据仅保存在本地服务器 · 不外传<br>乐吧公益中心 · 晚托管理系统</div>
 </div>
-<script>
-// 所有字揭示完后触发发光
-var chars = document.querySelectorAll('.char');
-var total = chars.length;
-var done = 0;
-chars.forEach(function(el){
-  el.addEventListener('animationend', function(){
-    done++;
-    if(done >= total){
-      document.getElementById('charWrap').classList.add('glow');
-    }
-  });
-});
-// 🚀 Service Worker版本检测：如果旧版SW还在用，强制更新并刷新（仅首次）
-if ('serviceWorker' in navigator && !sessionStorage.getItem('sw_updated')) {
-  sessionStorage.setItem('sw_updated', '1');
-  navigator.serviceWorker.getRegistration('/lebacenter/').then(function(reg) {
-    if (reg && reg.active && !reg.active.scriptURL.includes('leba-v2')) {
-      fetch('/lebacenter/sw.js', {cache:'no-store'}).then(function(r){return r.text();}).then(function(code){
-        if (code.includes('leba-v2')) {
-          reg.update().then(function() {
-            if (reg.installing) {
-              reg.installing.postMessage({type:'SKIP_WAITING'});
-            }
-            window.location.reload();
-          });
-        }
-      }).catch(function(){});
-    }
-  });
-}
-// 按钮点击 — 检测cpolar隧道可达后跳转
-// var target 由 gp_sync.sh 自动更新，永远是最新URL
-// href 也由 gp_sync.sh 同步更新（双重保险）
-var target = 'https://6f3990ac.r23.cpolar.top'
-var btn = document.getElementById('enterBtn');
-btn.addEventListener('click', function(e){
-  e.preventDefault();
-  btn.textContent = '⏳ 检测中...';
-  btn.style.pointerEvents = 'none';
-  var ctrl = new AbortController();
-  setTimeout(function(){ ctrl.abort(); }, 5000);
-  // 优先用btn.href（DOM直接链接，最可靠），fallback到var target
-  var url = btn.getAttribute('href') || target;
-  fetch(url, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
-    .then(function(){ window.location.href = target; })
-    .catch(function(){
-      btn.textContent = '🏛️ 进入乐吧系统';
-      btn.style.pointerEvents = 'auto';
-      showMaintenancePopup();
-    });
-});
-function showMaintenancePopup(){
-  var o = document.createElement('div');
-  o.className = 'maint-overlay';
-  o.innerHTML = '<div class="maint-popup">' +
-    '<div class="maint-icon">🔧</div>' +
-    '<div class="maint-title">系统临时维护中</div>' +
-    '<div class="maint-desc">乐吧系统正在维护升级<br>请稍后再试</div>' +
-    '<div class="maint-contact">如有紧急问题请联系施老师</div>' +
-    '<button class="maint-btn" onclick="this.parentElement.parentElement.remove()">我知道了</button></div>';
-  document.body.appendChild(o);
-}
-// 📲 PWA: 注册Service Worker + 安装到主屏幕
-var deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', function(e){
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('pwaArea').style.display = 'block';
-});
-window.addEventListener('appinstalled', function(){
-  document.getElementById('pwaBtn').textContent = '✅ 已安装';
-  document.getElementById('pwaBtn').className = 'pwa-btn installed';
-});
-function installPWA(){
-  if(deferredPrompt){
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(function(result){
-      if(result.outcome === 'accepted') console.log('PWA installed');
-      deferredPrompt = null;
-    });
-  } else {
-    alert('请在浏览器菜单中点击「添加到主屏幕」');
-  }
-}
-// 注册Service Worker
-if('serviceWorker' in navigator){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('/lebacenter/sw.js', {scope: '/lebacenter/'});
-  });
-}
-</script>
+<script>document.getElementById('todayDate').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'})</script>
 </body>
 </html>
