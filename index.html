@@ -288,9 +288,9 @@ body{
 
 var CONFIG = {
   scene1: {duration:1.0, bgFrom:'#0a0e1a', bgTo:'#1a0e2e', stars:120},
-  scene2: {duration:1.5, particles:150, hueMin:38, hueMax:50, sat:100, lightMin:60, lightMax:85, sizeMin:2, sizeMax:6},
-  scene3: {duration:1.5, petalCount:150, staggerMax:0.3},
-  scene4: {duration:2.5, text:'乐吧公益中心', fontSize:76, charGap:86, staggerDelay:0.08, sweepDuration:0.6}
+  scene2: {duration:1.0, particles:150, hueMin:38, hueMax:50, sat:100, lightMin:60, lightMax:85, sizeMin:2, sizeMax:6},
+  scene3: {duration:1.2, petalCount:150, staggerMax:0.25},
+  scene4: {duration:2.0, text:'乐吧公益中心', fontSize:76, charGap:86, staggerDelay:0.1, sweepDuration:0.5}
 };
 // Apple标准曲线
 function cubicBezier(t, p1x,p1y,p2x,p2y){
@@ -305,7 +305,9 @@ function cubicBezier(t, p1x,p1y,p2x,p2y){
   return ((ay*x+by)*x+cy)*x;
 }
 function easeApple(t){return cubicBezier(t,0.42,0,0.58,1);}
-function easeOutExpo(t){return t===1?1:1-Math.pow(2,-10*t);}
+// 柔和的缓动曲线（替换生硬的easeOutExpo）
+function easeGentleOut(t){return cubicBezier(t,0.16,0.84,0.44,1);}
+function easeFadeIn(t){return cubicBezier(t,0.4,0,0.2,1);}
 function easeInSine(t){return 1-Math.cos(t*Math.PI/2);}
 function lerp(a,b,t){return a+(b-a)*t;}
 function rand(a,b){return a+Math.random()*(b-a);}
@@ -382,29 +384,30 @@ StarBurstScene.prototype.init=function(ctx,w,h){
   }
 };
 StarBurstScene.prototype.render=function(ctx,w,h,progress){
-  var c=this.config,t=easeOutExpo(Math.min(progress*1.2,1));
+  var c=this.config,t=easeGentleOut(Math.min(progress*1.1,1));
   var cx=w/2,cy=h*0.42;
-  // 径向光晕背景
-  var glow=ctx.createRadialGradient(cx,cy,0,cx,cy,w*0.35);
-  glow.addColorStop(0,'rgba(246,211,101,0.04)');
-  glow.addColorStop(0.5,'rgba(246,211,101,0.02)');
+  // 径向光晕背景 - 柔和提亮
+  var glow=ctx.createRadialGradient(cx,cy,0,cx,cy,w*0.28);
+  glow.addColorStop(0,'rgba(246,211,101,0.03)');
+  glow.addColorStop(0.6,'rgba(246,211,101,0.015)');
   glow.addColorStop(1,'transparent');
   ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
-  // 粒子
+  // 粒子 - 柔和扩散
   var now=performance.now()/1000;
   for(var i=0;i<this.particles.length;i++){
     var p=this.particles[i];
     var d=lerp(p.startDist,p.endDist,t);
     var x=cx+Math.cos(p.angle)*d;
     var y=cy+Math.sin(p.angle)*d;
-    var opacity=(1-t)*(1-t)*0.9+0.1;
-    opacity*=0.5+0.5*Math.sin(now*3+p.phase);
+    var opacity=(1-t)*(1-t*0.7)*0.85+0.15;
+    opacity*=0.6+0.4*Math.sin(now*2+p.phase);
     ctx.globalAlpha=Math.max(0,opacity);
+    var s=lerp(0.5,1,t);
     ctx.fillStyle='hsl('+p.hue+','+c.sat+'%,'+p.light+'%)';
-    ctx.beginPath();ctx.arc(x,y,p.size*t,0,Math.PI*2);ctx.fill();
-    // 发光
-    ctx.shadowColor='hsl('+p.hue+',100%,70%)';
-    ctx.shadowBlur=8;ctx.fill();ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(x,y,p.size*s,0,Math.PI*2);ctx.fill();
+    // 柔和发光
+    ctx.shadowColor='hsl('+p.hue+',80%,70%)';
+    ctx.shadowBlur=5;ctx.fill();ctx.shadowBlur=0;
   }
   ctx.globalAlpha=1;
 };
@@ -540,116 +543,93 @@ TextRevealScene.prototype.render=function(ctx,w,h,progress){
     if(t>charStart){
       charT=(t-charStart)/charRevealDuration;
       if(charT>1) charT=1;
-      var eaChar=easeOutExpo(charT); // 用更快的出场曲线
-      var opacity=Math.min(eaChar*1.5,1);
-      var scale=0.3+0.7*eaChar;
+      var eaChar=easeFadeIn(charT);
+      var opacity=Math.min(eaChar*1.2,1);
+      var scale=0.5+0.5*eaChar;
       
       var fontSize=c.fontSize*scale;
       ctx.font='bold '+fontSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
       
-      // === 3层渲染：底光 → 主字 → 高光，保证亮度 ===
-      
-      // 1️⃣ 外层光晕 (字显现时金色爆发)
-      if(charT<0.6){
-        var gs=120*(1-charT/0.6)+30;
-        var go=(1-charT/0.6)*0.5;
+      // 柔和光晕（显现时微弱金色光晕）
+      if(charT<0.4){
+        var gs=60*(1-charT/0.4)+20;
+        var go=(1-charT/0.4)*0.15;
         var g=ctx.createRadialGradient(chp.x,chp.y,0,chp.x,chp.y,gs);
         g.addColorStop(0,'rgba(255,220,120,'+go+')');
-        g.addColorStop(0.4,'rgba(255,200,80,'+(go*0.4)+')');
+        g.addColorStop(0.5,'rgba(255,200,80,'+(go*0.3)+')');
         g.addColorStop(1,'transparent');
         ctx.fillStyle=g;ctx.fillRect(chp.x-gs,chp.y-gs,gs*2,gs*2);
       }
       
-      // 2️⃣ 主文字 - 金色实心填充（无渐变，更亮）
-      ctx.shadowColor='rgba(255,210,100,0.5)';
-      ctx.shadowBlur=12*(1-eaChar)+4;
-      ctx.fillStyle='#f5d66d'; // 亮金色
+      // 主文字 - 金色
+      ctx.shadowColor='rgba(255,210,100,0.4)';
+      ctx.shadowBlur=8*(1-eaChar)+3;
+      ctx.fillStyle='#f5d66d';
       ctx.globalAlpha=opacity;
       ctx.fillText(chp.ch,chp.x,chp.y+2);
       
-      // 3️⃣ 白色高光层（叠加在金色上，让字变亮）
+      // 暖白高光叠加
       ctx.shadowBlur=0;
-      ctx.globalAlpha=opacity*0.45;
+      ctx.globalAlpha=opacity*0.4;
       ctx.fillStyle='#ffe8a0';
       ctx.fillText(chp.ch,chp.x-1,chp.y-1);
       
-      // 4️⃣ 中心白色高光（字最亮的核心）
-      ctx.globalAlpha=opacity*0.2;
+      // 中心纯白高光
+      ctx.globalAlpha=opacity*0.15;
       ctx.fillStyle='#ffffff';
       ctx.fillText(chp.ch,chp.x-1,chp.y-1);
       
       ctx.shadowBlur=0;ctx.globalAlpha=1;
-      
-      // 小星星粒子从字位置飞散(显现瞬间)
-      if(charT<0.25){
-        for(var j=0;j<6;j++){
-          var sa=(j/6)*Math.PI*2;
-          var sd=15+30*charT;
-          var sx=chp.x+Math.cos(sa)*sd;
-          var sy=chp.y+Math.sin(sa)*sd;
-          ctx.globalAlpha=(0.25-charT)*2;
-          ctx.fillStyle='#ffdd88';
-          ctx.beginPath();ctx.arc(sx,sy,1.5,0,Math.PI*2);ctx.fill();
-        }
-        ctx.globalAlpha=1;
-      }
     } else {
-      // 未开始显现的字——微弱光点(预兆)
-      ctx.globalAlpha=0.05+0.04*Math.sin(now*2.5+i*1.7);
+      // 未显现的字——微弱预兆光点
+      ctx.globalAlpha=0.04+0.03*Math.sin(now*2+i*1.7);
       ctx.fillStyle='#f6d365';
       ctx.beginPath();ctx.arc(chp.x,chp.y,2,0,Math.PI*2);ctx.fill();
       ctx.globalAlpha=1;
     }
   }
   
-  // ===== 金色光效扫描 (在归一化时间0-1内) =====
-  var sweepStart=Math.min(staggerTotal+0.1, 0.75);
-  var sweepEnd=sweepStart+0.5;
+  // ===== 柔和金色扫描 =====
+  var sweepStart=Math.min(staggerTotal+0.1, 0.7);
+  var sweepEnd=sweepStart+0.45;
   if(t>sweepStart && t<sweepEnd){
     var sweepPos=(t-sweepStart)/(sweepEnd-sweepStart);
     var sweepX=lerp(0,w,sweepPos);
-    var sg=ctx.createLinearGradient(sweepX-100,0,sweepX+100,0);
+    var sg=ctx.createLinearGradient(sweepX-120,0,sweepX+120,0);
     sg.addColorStop(0,'transparent');
-    sg.addColorStop(0.3,'rgba(255,220,120,0.06)');
-    sg.addColorStop(0.5,'rgba(255,220,120,0.2)');
-    sg.addColorStop(0.7,'rgba(255,220,120,0.06)');
+    sg.addColorStop(0.35,'rgba(255,220,120,0.04)');
+    sg.addColorStop(0.5,'rgba(255,220,120,0.12)');
+    sg.addColorStop(0.65,'rgba(255,220,120,0.04)');
     sg.addColorStop(1,'transparent');
     ctx.fillStyle=sg;ctx.fillRect(0,0,w,h);
-    // 扫过文字时闪白
+    // 扫过文字时微亮
     for(var i=0;i<totalChars;i++){
       var chp=this.charPositions[i];
-      if(Math.abs(chp.x-sweepX)<40){
-        ctx.globalAlpha=0.35*Math.max(0,1-Math.abs(chp.x-sweepX)/40);
+      if(Math.abs(chp.x-sweepX)<45){
+        ctx.globalAlpha=0.2*Math.max(0,1-Math.abs(chp.x-sweepX)/45);
         ctx.fillStyle='#fff';
-        ctx.font='bold '+(c.fontSize*1.05)+'px "PingFang SC","Microsoft YaHei",sans-serif';
+        ctx.font='bold '+(c.fontSize*1.02)+'px "PingFang SC","Microsoft YaHei",sans-serif';
         ctx.fillText(chp.ch,chp.x,chp.y+2);
         ctx.globalAlpha=1;
       }
     }
   }
   
-  // ===== 完成状态：稳定亮金 + 微呼吸 =====
+  // ===== 完成状态：柔和亮金 + 微呼吸 =====
   if(t>sweepEnd-0.05){
-    var breathe=0.5+0.5*Math.sin(now*0.8);
+    var breathe=0.5+0.5*Math.sin(now*0.6);
     for(var i=0;i<totalChars;i++){
       var chp=this.charPositions[i];
       ctx.font='bold '+c.fontSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
-      
-      // 底光
-      ctx.shadowColor='rgba(255,210,100,0.25)';
-      ctx.shadowBlur=6+breathe*4;
-      
-      // 主层-亮金色
+      ctx.shadowColor='rgba(255,210,100,0.2)';
+      ctx.shadowBlur=5+breathe*3;
       ctx.fillStyle='#f5d66d';
-      ctx.globalAlpha=0.92+breathe*0.08;
+      ctx.globalAlpha=0.94+breathe*0.06;
       ctx.fillText(chp.ch,chp.x,chp.y+2);
-      
-      // 高光层-白色叠加
       ctx.shadowBlur=0;
-      ctx.globalAlpha=0.35;
+      ctx.globalAlpha=0.3;
       ctx.fillStyle='#fff5d0';
       ctx.fillText(chp.ch,chp.x-1,chp.y-1);
-      
       ctx.shadowBlur=0;ctx.globalAlpha=1;
     }
   }
