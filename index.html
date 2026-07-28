@@ -12,18 +12,16 @@
 <title>乐吧公益中心</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
+html,body{overflow:hidden;width:100%;height:100%;}
 body{
-  background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,122,255,0.06) 0%,transparent 60%),
-    radial-gradient(ellipse 50% 30% at 80% 80%,rgba(175,82,222,0.05) 0%,transparent 50%),
-    linear-gradient(135deg,#f0f2f5,#e4e8ee);
+  background:#0a0e1a;
   display:flex;align-items:center;justify-content:center;
-  min-height:100vh;font-family:"PingFang SC","Microsoft YaHei",sans-serif;
-  padding:20px;text-align:center;overflow-x:hidden;
-  background-color:#0a0e1a;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+  padding:20px;text-align:center;
 }
-/* ===== 🎬 开场Canvas ===== */
+/* ===== 🎬 开场Canvas（100vw覆盖，杜绝白边） ===== */
 #introCanvas{
-  position:fixed;top:0;left:0;width:100%;height:100%;
+  position:fixed;top:0;left:0;width:100vw;height:100vh;
   z-index:99999;pointer-events:none;
 }
 /* ===== 卡片（开场后才显示） ===== */
@@ -527,7 +525,7 @@ TextRevealScene.prototype.render=function(ctx,w,h,progress){
   ctx.globalAlpha=1;
   
   // 逐个字符显现
-  var charRevealDuration=0.7; // 每个字显现时长
+  var charRevealDuration=0.5; // 每个字显现更快
   var totalChars=this.charPositions.length;
   var staggerTotal=c.staggerDelay*totalChars+charRevealDuration;
   var charT;
@@ -536,119 +534,120 @@ TextRevealScene.prototype.render=function(ctx,w,h,progress){
   
   for(var i=0;i<totalChars;i++){
     var chp=this.charPositions[i];
-    // 这个字的开始时间
     var charStart=c.staggerDelay*i;
-    var charEnd=charStart+charRevealDuration;
     if(t>charStart){
       charT=(t-charStart)/charRevealDuration;
       if(charT>1) charT=1;
-      var eaChar=easeApple(charT);
+      var eaChar=easeOutExpo(charT); // 用更快的出场曲线
       var opacity=Math.min(eaChar*1.5,1);
-      var scale=0.4+0.6*eaChar;
+      var scale=0.3+0.7*eaChar;
       
-      // 字体大小随开场渐变
       var fontSize=c.fontSize*scale;
       ctx.font='bold '+fontSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
       
-      // 金色光晕(字显现时爆发)
-      var glowSize=100*(1-eaChar)+20;
-      var glowOpacity=(1-eaChar)*0.3;
-      if(glowOpacity>0){
-        var g=ctx.createRadialGradient(chp.x,chp.y,0,chp.x,chp.y,glowSize);
-        g.addColorStop(0,'rgba(246,211,101,'+glowOpacity+')');
-        g.addColorStop(0.5,'rgba(246,211,101,'+(glowOpacity*0.3)+')');
+      // === 3层渲染：底光 → 主字 → 高光，保证亮度 ===
+      
+      // 1️⃣ 外层光晕 (字显现时金色爆发)
+      if(charT<0.6){
+        var gs=120*(1-charT/0.6)+30;
+        var go=(1-charT/0.6)*0.5;
+        var g=ctx.createRadialGradient(chp.x,chp.y,0,chp.x,chp.y,gs);
+        g.addColorStop(0,'rgba(255,220,120,'+go+')');
+        g.addColorStop(0.4,'rgba(255,200,80,'+(go*0.4)+')');
         g.addColorStop(1,'transparent');
-        ctx.fillStyle=g;ctx.fillRect(chp.x-glowSize,chp.y-glowSize,glowSize*2,glowSize*2);
+        ctx.fillStyle=g;ctx.fillRect(chp.x-gs,chp.y-gs,gs*2,gs*2);
       }
       
-      // 发光文字
-      ctx.shadowColor='rgba(246,211,101,0.6)';
-      ctx.shadowBlur=20*(1-eaChar)+6;
-      
-      // 渐变填充
-      var textGrad=ctx.createLinearGradient(chp.x-30,chp.y,chp.x+30,chp.y);
-      textGrad.addColorStop(0,'#f6d365');
-      textGrad.addColorStop(0.5,'#fda085');
-      textGrad.addColorStop(1,'#f6d365');
-      ctx.fillStyle=textGrad;
+      // 2️⃣ 主文字 - 金色实心填充（无渐变，更亮）
+      ctx.shadowColor='rgba(255,210,100,0.5)';
+      ctx.shadowBlur=12*(1-eaChar)+4;
+      ctx.fillStyle='#f5d66d'; // 亮金色
       ctx.globalAlpha=opacity;
       ctx.fillText(chp.ch,chp.x,chp.y+2);
       
-      // 白色高光层
+      // 3️⃣ 白色高光层（叠加在金色上，让字变亮）
       ctx.shadowBlur=0;
-      ctx.globalAlpha=opacity*0.3;
-      ctx.fillStyle='#fff';
-      ctx.fillText(chp.ch,chp.x-1,chp.y);
+      ctx.globalAlpha=opacity*0.45;
+      ctx.fillStyle='#ffe8a0';
+      ctx.fillText(chp.ch,chp.x-1,chp.y-1);
+      
+      // 4️⃣ 中心白色高光（字最亮的核心）
+      ctx.globalAlpha=opacity*0.2;
+      ctx.fillStyle='#ffffff';
+      ctx.fillText(chp.ch,chp.x-1,chp.y-1);
       
       ctx.shadowBlur=0;ctx.globalAlpha=1;
       
       // 小星星粒子从字位置飞散(显现瞬间)
-      if(charT<0.3){
-        var sparkleCount=8;
-        for(var j=0;j<sparkleCount;j++){
-          var sa=(j/sparkleCount)*Math.PI*2;
-          var sd=20+40*charT;
+      if(charT<0.25){
+        for(var j=0;j<6;j++){
+          var sa=(j/6)*Math.PI*2;
+          var sd=15+30*charT;
           var sx=chp.x+Math.cos(sa)*sd;
           var sy=chp.y+Math.sin(sa)*sd;
-          ctx.globalAlpha=(0.3-charT)*0.8;
-          ctx.fillStyle='hsl(45,100%,85%)';
+          ctx.globalAlpha=(0.25-charT)*2;
+          ctx.fillStyle='#ffdd88';
           ctx.beginPath();ctx.arc(sx,sy,1.5,0,Math.PI*2);ctx.fill();
         }
         ctx.globalAlpha=1;
       }
     } else {
       // 未开始显现的字——微弱光点(预兆)
-      ctx.globalAlpha=0.04+0.03*Math.sin(now*2+i*1.7);
+      ctx.globalAlpha=0.05+0.04*Math.sin(now*2.5+i*1.7);
       ctx.fillStyle='#f6d365';
       ctx.beginPath();ctx.arc(chp.x,chp.y,2,0,Math.PI*2);ctx.fill();
       ctx.globalAlpha=1;
     }
   }
   
-  // ===== 金色光效扫描 =====
-  var sweepStart=staggerTotal+0.15;
-  var sweepEnd=sweepStart+c.sweepDuration;
+  // ===== 金色光效扫描 (在归一化时间0-1内) =====
+  var sweepStart=Math.min(staggerTotal+0.1, 0.75);
+  var sweepEnd=sweepStart+0.5;
   if(t>sweepStart && t<sweepEnd){
-    var sweepPos=(t-sweepStart)/c.sweepDuration;
+    var sweepPos=(t-sweepStart)/(sweepEnd-sweepStart);
     var sweepX=lerp(0,w,sweepPos);
-    // 扫描光束
-    var sweepGrad=ctx.createLinearGradient(sweepX-80,0,sweepX+80,0);
-    sweepGrad.addColorStop(0,'transparent');
-    sweepGrad.addColorStop(0.3,'rgba(246,211,101,0.04)');
-    sweepGrad.addColorStop(0.5,'rgba(246,211,101,0.15)');
-    sweepGrad.addColorStop(0.7,'rgba(246,211,101,0.04)');
-    sweepGrad.addColorStop(1,'transparent');
-    ctx.fillStyle=sweepGrad;
-    ctx.fillRect(0,0,w,h);
-    
-    // 扫过文字时的小闪烁
+    var sg=ctx.createLinearGradient(sweepX-100,0,sweepX+100,0);
+    sg.addColorStop(0,'transparent');
+    sg.addColorStop(0.3,'rgba(255,220,120,0.06)');
+    sg.addColorStop(0.5,'rgba(255,220,120,0.2)');
+    sg.addColorStop(0.7,'rgba(255,220,120,0.06)');
+    sg.addColorStop(1,'transparent');
+    ctx.fillStyle=sg;ctx.fillRect(0,0,w,h);
+    // 扫过文字时闪白
     for(var i=0;i<totalChars;i++){
       var chp=this.charPositions[i];
       if(Math.abs(chp.x-sweepX)<40){
-        ctx.globalAlpha=0.3*Math.max(0,1-Math.abs(chp.x-sweepX)/40);
+        ctx.globalAlpha=0.35*Math.max(0,1-Math.abs(chp.x-sweepX)/40);
         ctx.fillStyle='#fff';
-        ctx.font='bold '+c.fontSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
+        ctx.font='bold '+(c.fontSize*1.05)+'px "PingFang SC","Microsoft YaHei",sans-serif';
         ctx.fillText(chp.ch,chp.x,chp.y+2);
         ctx.globalAlpha=1;
       }
     }
   }
   
-  // ===== 完成后的呼吸光晕 =====
-  if(t>sweepEnd){
-    var breathe=0.5+0.5*Math.sin(now*0.5);
+  // ===== 完成状态：稳定亮金 + 微呼吸 =====
+  if(t>sweepEnd-0.05){
+    var breathe=0.5+0.5*Math.sin(now*0.8);
     for(var i=0;i<totalChars;i++){
       var chp=this.charPositions[i];
-      ctx.shadowColor='rgba(246,211,101,0.3)';
-      ctx.shadowBlur=8+breathe*6;
       ctx.font='bold '+c.fontSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
-      var textGrad=ctx.createLinearGradient(chp.x-30,chp.y,chp.x+30,chp.y);
-      textGrad.addColorStop(0,'#f6d365');
-      textGrad.addColorStop(0.5,'#fda085');
-      textGrad.addColorStop(1,'#f6d365');
-      ctx.fillStyle=textGrad;
-      ctx.globalAlpha=0.94+breathe*0.06;
+      
+      // 底光
+      ctx.shadowColor='rgba(255,210,100,0.25)';
+      ctx.shadowBlur=6+breathe*4;
+      
+      // 主层-亮金色
+      ctx.fillStyle='#f5d66d';
+      ctx.globalAlpha=0.92+breathe*0.08;
       ctx.fillText(chp.ch,chp.x,chp.y+2);
+      
+      // 高光层-白色叠加
+      ctx.shadowBlur=0;
+      ctx.globalAlpha=0.35;
+      ctx.fillStyle='#fff5d0';
+      ctx.fillText(chp.ch,chp.x-1,chp.y-1);
+      
       ctx.shadowBlur=0;ctx.globalAlpha=1;
     }
   }
@@ -735,6 +734,9 @@ SceneManager.prototype._loop=function(ctx,w,h){
       opacity-=0.03;
       if(opacity<=0){
         canvas.style.display='none';
+        // 恢复浅色背景（开场后卡片需要）
+        document.body.style.background='radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,122,255,0.06) 0%,transparent 60%),radial-gradient(ellipse 50% 30% at 80% 80%,rgba(175,82,222,0.05) 0%,transparent 50%),linear-gradient(135deg,#f0f2f5,#e4e8ee)';
+        document.body.style.backgroundSize='100% 100%';
         // 显示卡片
         var card=document.getElementById('mainCard');
         card.classList.add('show');
