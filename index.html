@@ -486,21 +486,23 @@ TextRevealScene.prototype=Object.create(Scene.prototype);
 TextRevealScene.prototype.init=function(ctx,w,h){
   var c=this.config;
   var chars=c.text.split('');
+  // 按屏幕宽度动态计算字号（6个字+间距，留10%边距）
+  var availW=w*0.90;
+  var idealSize=Math.floor(availW/(chars.length*1.13));
+  c.fontSize=Math.min(c.fontSize,idealSize);
+  c.charGap=Math.floor(c.fontSize*1.13);
   var totalW=chars.length*c.charGap;
   var startX=(w-totalW)/2;
   var baseY=h*0.42;
-  // 初始化每帧位置+光效状态
   for(var i=0;i<chars.length;i++){
     this.charPositions.push({
       ch:chars[i],
       x:startX+i*c.charGap+c.charGap*0.5,
-      y:baseY, // 最终位置
-      // 粒子汇聚起始位置(从四周飞来)
+      y:baseY,
       particleStartX:rand(w*0.1,w*0.9),
       particleStartY:rand(-h*0.2,h*0.2)+h*0.3,
-      // 汇聚粒子的当前状态
       particles:[],
-      revealProgress:0, // 0-1
+      revealProgress:0,
       glowIntensity:0
     });
   }
