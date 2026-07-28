@@ -14,7 +14,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{overflow:hidden;width:100%;height:100%;}
 body{
-  background:#0a0e1a;
+  background:#1a1828;
   display:flex;align-items:center;justify-content:center;
   font-family:"PingFang SC","Microsoft YaHei",sans-serif;
   padding:20px;text-align:center;
@@ -26,7 +26,7 @@ body{
 }
 /* ===== 卡片置于Canvas之上 ===== */
 .card{
-  background:rgba(255,255,255,0.85);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
+  background:rgba(248,244,238,0.88);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
   border-radius:28px;padding:50px 40px 36px;max-width:460px;width:100%;
   box-shadow:0 24px 80px rgba(0,0,0,0.06),0 0 0 1px rgba(255,255,255,0.8);
   opacity:0;transform:scale(0.95);
@@ -58,7 +58,7 @@ body{
   background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.5) 30%,transparent 60%,rgba(255,255,255,0.2) 80%,transparent 100%);
   animation:badgeShimmer 4s ease-in-out infinite 0.8s;z-index:1;}
 .badge-glass::after{content:'';position:absolute;inset:-2px;border-radius:50%;
-  background:conic-gradient(from 0deg,transparent,rgba(71,133,168,0.2),rgba(175,82,222,0.15),rgba(0,122,255,0.2),transparent);
+      background:conic-gradient(from 0deg,transparent,rgba(71,133,168,0.2),rgba(196,149,106,0.15),rgba(71,133,168,0.2),transparent);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;padding:2px;
   animation:badgeSpin 6s linear infinite;}
@@ -72,7 +72,7 @@ body{
 @keyframes badgeSpin{to{transform:rotate(360deg);}}
 /* 品牌文字 - 七彩渐变 */
 .brand-title{font-size:clamp(30px,7.5vw,48px);font-weight:800;line-height:1.2;margin:4px 0 6px;white-space:nowrap;
-  background:linear-gradient(135deg,#007AFF,#AF52DE 25%,#FF2D55 50%,#FF9500 75%,#34C759);
+  background:linear-gradient(135deg,#4785a8,#c4956a);
   background-size:200% 100%;background-position:100% 0;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   opacity:0;transform:translateY(10px) scale(0.96);
@@ -82,7 +82,7 @@ body{
   60%{opacity:1;transform:translateY(0) scale(1);background-position:60% 0;}
   100%{opacity:1;transform:translateY(0) scale(1);background-position:0% 0;}}
 .brand-title.glow{animation:brandGlow 3s ease-in-out infinite 1.5s,brandReveal 0.8s cubic-bezier(0.25,0.1,0.25,1) 0.3s forwards;}
-@keyframes brandGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(0,122,255,0.10));}50%{filter:drop-shadow(0 0 14px rgba(175,82,222,0.25));}}
+@keyframes brandGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(71,133,168,0.10));}50%{filter:drop-shadow(0 0 14px rgba(196,149,106,0.20));}}
 .sub-text{color:#86868b;font-size:14px;margin:4px 0 14px;opacity:0;transform:translateY(6px);
   animation:fadeUp 0.5s cubic-bezier(0.25,0.1,0.25,1) 0.6s forwards;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
@@ -95,7 +95,7 @@ body{
   box-shadow:0 2px 12px rgba(71,133,168,0.08),inset 0 1px 0 rgba(255,255,255,0.9);
   transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);user-select:none;position:relative;overflow:hidden;}
 .enter-btn::before{content:'';position:absolute;inset:-2px;border-radius:999px;
-  background:conic-gradient(from 0deg,transparent,rgba(71,133,168,0.15),rgba(175,82,222,0.1),rgba(0,122,255,0.15),transparent);
+  background:conic-gradient(from 0deg,transparent,rgba(71,133,168,0.15),rgba(196,149,106,0.1),rgba(71,133,168,0.15),transparent);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;padding:2px;
   animation:btnSpin 4s linear infinite;}
@@ -138,18 +138,17 @@ body{
 .heal-status.fail{color:#ff3b30;}
 .cine-layer{position:fixed;top:0;left:0;width:100%;height:100%;z-index:999998;pointer-events:none;overflow:hidden;opacity:0;transition:opacity 0.15s ease;}
 .cine-layer.show{opacity:1;}
-.cine-dark{position:absolute;inset:0;background:rgba(10,10,20,0.92);opacity:0;animation:cineDarkIn 0.2s ease-out forwards;}
+.cine-dark{position:absolute;inset:0;background:rgba(24,20,30,0.85);opacity:0;animation:cineDarkIn 0.3s ease-out forwards;}
 @keyframes cineDarkIn{from{opacity:0;}to{opacity:1;}}
 .cine-core{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:4px;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,1),rgba(175,82,222,0.8),rgba(0,122,255,0.4),transparent);
-  box-shadow:0 0 40px 20px rgba(175,82,222,0.3);animation:cineCore 0.5s cubic-bezier(0.25,0.1,0.25,1) forwards;}
+  background:radial-gradient(circle,rgba(255,255,255,1),rgba(196,149,106,0.5),rgba(71,133,168,0.3),transparent);
+  box-shadow:0 0 40px 20px rgba(196,149,106,0.2);animation:cineCore 0.5s cubic-bezier(0.25,0.1,0.25,1) forwards;}
 .cine-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;
   border:2px solid rgba(255,255,255,0.6);animation:cineRing 0.7s cubic-bezier(0.25,0.1,0.25,1) 0.15s forwards;}
 .cine-particle{position:absolute;top:50%;left:50%;width:6px;height:6px;border-radius:50%;opacity:0;animation:partFly 0.8s cubic-bezier(0.25,0.1,0.25,1) 0.1s forwards;}
 .cine-wave{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:0;height:0;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(220,230,255,0.9) 30%,rgba(175,82,222,0.3) 60%,transparent 70%);animation:cineWave 0.6s cubic-bezier(0.25,0.1,0.25,1) 0.5s forwards;}
-.cine-white{position:absolute;inset:0;background:#fff;opacity:0;animation:cineWhiteIn 0.3s ease-out 0.9s forwards;}
-.cine-label{position:absolute;top:calc(50% + 60px);left:50%;transform:translateX(-50%);font-size:14px;font-weight:500;color:#86868b;letter-spacing:4px;opacity:0;animation:cineLabel 0.6s ease-out 1.0s forwards;}
+  background:radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(230,235,240,0.9) 30%,rgba(71,133,168,0.3) 60%,transparent 70%);animation:cineWave 0.6s cubic-bezier(0.25,0.1,0.25,1) 0.5s forwards;}
+.cine-label{position:absolute;top:calc(50% + 60px);left:50%;transform:translateX(-50%);font-size:14px;font-weight:500;color:#a0a0a8;letter-spacing:4px;opacity:0;animation:cineLabel 0.7s ease-out 0.8s forwards;}
 @keyframes cineLabel{from{opacity:0;transform:translateX(-50%) translateY(8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
 .maint-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;
   background:rgba(0,0,0,0.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
@@ -210,7 +209,7 @@ body{
       x:Math.random()*W, y:Math.random()*H,
       vx:(Math.random()-0.5)*0.25, vy:-(Math.random()*0.15+0.05),
       size:Math.random()*2.5+0.8,
-      hue:38+Math.random()*12, // 暖金色
+      hue:32+Math.random()*10, // 暖茶色
       alpha:Math.random()*0.3+0.1,
       phase:Math.random()*Math.PI*2
     });
@@ -225,16 +224,16 @@ body{
     // ===== 背景渐变 =====
     var bg=ctx.createRadialGradient(W/2,H*0.4,0,W/2,H*0.4,W*0.5);
     var dark=Math.min(1,elapsed/2)*0.8+0.2;
-    bg.addColorStop(0,'rgba(18,14,32,'+dark+')');
-    bg.addColorStop(1,'rgba(8,6,16,'+dark+')');
+    bg.addColorStop(0,'rgba(24,20,30,'+dark+')');
+    bg.addColorStop(1,'rgba(16,12,22,'+dark+')');
     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
     
     // ===== 中央光晕 =====
     var glowSize=Math.min(1,elapsed/3)*W*0.4;
     var glowAlpha=Math.min(1,elapsed/2)*0.06;
     var g=ctx.createRadialGradient(W/2,H*0.45,0,W/2,H*0.45,glowSize);
-    g.addColorStop(0,'rgba(246,211,101,'+glowAlpha+')');
-    g.addColorStop(0.6,'rgba(200,170,80,'+(glowAlpha*0.4)+')');
+    g.addColorStop(0,'rgba(196,149,106,'+glowAlpha+')');
+    g.addColorStop(0.6,'rgba(165,135,95,'+(glowAlpha*0.4)+')');
     g.addColorStop(1,'transparent');
     ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
     
@@ -273,7 +272,7 @@ body{
       var fadeT=(elapsed-12)/0.8;
       if(fadeT>=1){
         canvas.style.display='none';
-        document.body.style.background='radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,122,255,0.06) 0%,transparent 60%),radial-gradient(ellipse 50% 30% at 80% 80%,rgba(175,82,222,0.05) 0%,transparent 50%),linear-gradient(135deg,#f0f2f5,#e4e8ee)';
+        document.body.style.background='radial-gradient(ellipse 60% 40% at 20% 20%,rgba(71,133,168,0.04) 0%,transparent 60%),radial-gradient(ellipse 50% 30% at 80% 80%,rgba(196,149,106,0.04) 0%,transparent 50%),linear-gradient(135deg,#f5f2ed,#ece8e2)';
         document.body.style.overflow='auto';
         document.body.style.minHeight='100vh';
         return; // stop loop
@@ -311,6 +310,7 @@ function fetchTunnelUrl(){return fetch(URL_JSON+'?t='+Date.now()).then(function(
 
 btn.addEventListener('click',function(e){
   e.preventDefault();
+  var clickStart=Date.now();
   btn.textContent='⏳ 检测中...';
   btn.style.pointerEvents='none';
   (urlPromise||fetchTunnelUrl()).then(function(url){
@@ -318,13 +318,13 @@ btn.addEventListener('click',function(e){
     else{target=btn.getAttribute('href')||target;baseUrl=target.replace('/gateway/','');}
     var cineDiv=document.createElement('div');
     cineDiv.className='cine-layer';
-    cineDiv.innerHTML='<div class="cine-dark"></div><div class="cine-core"></div><div class="cine-ring"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-wave"></div><div class="cine-shard"></div><div class="cine-shard"></div><div class="cine-shard"></div><div class="cine-shard"></div><div class="cine-white"></div><div class="cine-label">即将进入乐吧系统</div>';
+    cineDiv.innerHTML='<div class="cine-dark"></div><div class="cine-core"></div><div class="cine-ring"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-wave"></div><div class="cine-label">即将进入乐吧系统</div>';
     document.body.appendChild(cineDiv);
     requestAnimationFrame(function(){cineDiv.classList.add('show');});
     var ctrl=new AbortController();
     setTimeout(function(){ctrl.abort();},5000);
     fetch(target,{method:'HEAD',mode:'no-cors',signal:ctrl.signal})
-      .then(function(){setTimeout(function(){window.location.href=target;},600);})
+      .then(function(){var e=Date.now()-clickStart;setTimeout(function(){window.location.href=target;},Math.max(0,2200-e));})
       .catch(function(){cineDiv.remove();showHealAnimation();});
   });
 });
