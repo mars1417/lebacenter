@@ -148,6 +148,20 @@ body{
 .pwa-btn{background:none;border:none;font-size:12px;color:#86868b;cursor:pointer;padding:6px 14px;border-radius:8px;transition:all 0.3s;}
 .pwa-btn:hover{background:rgba(0,0,0,0.04);color:#4785a8;}
 .pwa-btn.installed{color:#34c759;cursor:default;}
+/* ===== 页面过渡 ===== */
+.page-fade{position:fixed;top:0;left:0;width:100%;height:100%;z-index:999998;
+  background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,122,255,0.08) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 30% at 80% 80%,rgba(175,82,222,0.06) 0%,transparent 50%),
+    linear-gradient(135deg,#f0f2f5,#e4e8ee);
+  pointer-events:none;opacity:0;transition:opacity 0.5s ease-out;}
+.page-fade.show{opacity:1;}
+.page-fade .pf-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;animation:fadeScale 0.6s ease-out;}
+@keyframes fadeScale{0%{opacity:0;transform:translate(-50%,-50%) scale(0.5);}100%{opacity:1;transform:translate(-50%,-50%) scale(1);}}
+/* 登录页加载圈 */
+.page-fade .pf-spinner{position:absolute;top:calc(50% + 40px);left:50%;transform:translateX(-50%);
+  width:20px;height:20px;border:2px solid rgba(71,133,168,0.15);border-top-color:#4785a8;border-radius:50%;
+  animation:pfSpin 0.8s linear infinite;opacity:0;animation-fill-mode:forwards;animation-delay:0.3s;}
+@keyframes pfSpin{to{transform:translateX(-50%) rotate(360deg);}}
 /* ===== 原维护弹窗 ===== */
 .maint-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;
   background:rgba(0,0,0,0.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
@@ -251,9 +265,27 @@ btn.addEventListener('click', function(e){
   var ctrl = new AbortController();
   setTimeout(function(){ ctrl.abort(); }, 5000);
   var url = btn.getAttribute('href') || target;
+  
+  // 先插入页面过渡动画
+  var fadeDiv = document.createElement('div');
+  fadeDiv.className = 'page-fade';
+  fadeDiv.innerHTML = '<div class="pf-icon">📚</div><div class="pf-spinner"></div>';
+  document.body.appendChild(fadeDiv);
+  // 下一帧触发动画
+  requestAnimationFrame(function(){
+    fadeDiv.classList.add('show');
+  });
+  
   fetch(url, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
-    .then(function(){ window.location.href = target; })
-    .catch(function(){ showHealAnimation(); });
+    .then(function(){
+      // 等淡出动画走完再跳转
+      setTimeout(function(){ window.location.href = target; }, 600);
+    })
+    .catch(function(){
+      // 移除过渡，显示小树动画
+      fadeDiv.remove();
+      showHealAnimation();
+    });
 });
 
 function showHealAnimation(){
