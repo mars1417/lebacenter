@@ -52,19 +52,16 @@ body{
   display:flex;align-items:center;justify-content:center;
   transform:rotateX(6deg) rotateY(-8deg);
   transition:transform 0.4s cubic-bezier(0.25,0.1,0.25,1);
-  animation:badgeFloat 5s ease-in-out infinite 0.5s;}
+  animation:badgeFloat 5s ease-in-out infinite 0.5s;overflow:hidden;}
+.badge-logo{width:65%;height:65%;object-fit:contain;border-radius:50%;transform:translateZ(4px);}
 .badge-glass::before{content:'';position:absolute;inset:0;border-radius:50%;
   background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.5) 30%,transparent 60%,rgba(255,255,255,0.2) 80%,transparent 100%);
-  animation:badgeShimmer 4s ease-in-out infinite 0.8s;}
+  animation:badgeShimmer 4s ease-in-out infinite 0.8s;z-index:1;}
 .badge-glass::after{content:'';position:absolute;inset:-2px;border-radius:50%;
   background:conic-gradient(from 0deg,transparent,rgba(71,133,168,0.2),rgba(175,82,222,0.15),rgba(0,122,255,0.2),transparent);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;padding:2px;
   animation:badgeSpin 6s linear infinite;}
-.badge-icon{font-size:36px;font-weight:800;
-  background:linear-gradient(135deg,#4785a8,#6da8a0,#8fc1b5);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  transform:translateZ(4px);}
 .badge-shadow{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
   width:60px;height:12px;border-radius:50%;
   background:radial-gradient(ellipse,rgba(0,0,0,0.06),transparent);
@@ -176,7 +173,7 @@ body{
 
 <div class="card" id="mainCard">
   <div class="badge-wrap">
-    <div class="badge-glass"><span class="badge-icon">乐</span></div>
+    <div class="badge-glass"><img class="badge-logo" src="/lebacenter/logo.png" alt="乐吧公益中心"></div>
     <div class="badge-shadow"></div>
   </div>
   <div class="brand-title" id="brandTitle">乐吧公益中心</div>
