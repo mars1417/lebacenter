@@ -31,41 +31,71 @@ body{
   background-size:200% 100%;animation:waveShift 4s ease-in-out infinite;}
 @keyframes waveShift{0%,100%{background-position:0% 0;}50%{background-position:100% 0;}}
 @keyframes cardIn{from{opacity:0;transform:scale(0.92) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
-.logo{font-size:48px;margin-bottom:6px;animation:logoBounce 2s ease-in-out infinite;}
-@keyframes logoBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
-/* ===== 标题文字动画 ===== */
-.char-wrap{display:flex;justify-content:center;gap:4px;margin:6px 0 10px;min-height:68px;flex-wrap:wrap;}
-.char{display:inline-block;font-size:52px;font-weight:800;line-height:1.2;
+/* ===== 🎬 大片级入口动画 ===== */
+/* 3D白玻徽章 - 浮空+高光扫描 */
+.badge-wrap{position:relative;width:80px;height:80px;margin:0 auto 8px;perspective:800px;}
+.badge-glass{width:80px;height:80px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,0.95) 0%,rgba(230,240,255,0.6) 40%,rgba(200,215,240,0.3) 70%,rgba(180,200,230,0.15) 100%);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1.5px solid rgba(255,255,255,0.8);
+  box-shadow:0 8px 32px rgba(71,133,168,0.12),inset 0 1px 0 rgba(255,255,255,0.9),inset 0 -1px 0 rgba(0,0,0,0.04);
+  display:flex;align-items:center;justify-content:center;
+  transform:rotateX(6deg) rotateY(-8deg);
+  transition:transform 0.4s cubic-bezier(0.25,0.1,0.25,1);
+  animation:badgeFloat 5s ease-in-out infinite 0.5s;}
+.badge-glass::before{content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.5) 30%,transparent 60%,rgba(255,255,255,0.2) 80%,transparent 100%);
+  animation:badgeShimmer 4s ease-in-out infinite 0.8s;}
+.badge-glass::after{content:'';position:absolute;inset:-2px;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent,rgba(71,133,168,0.2),rgba(175,82,222,0.15),rgba(0,122,255,0.2),transparent);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;padding:2px;
+  animation:badgeSpin 6s linear infinite;}
+.badge-icon{font-size:36px;font-weight:800;
+  background:linear-gradient(135deg,#4785a8,#6da8a0,#8fc1b5);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  transform:translateZ(4px);}
+.badge-shadow{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+  width:60px;height:12px;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(0,0,0,0.06),transparent);
+  animation:shadowPulse 5s ease-in-out infinite 0.5s;}
+@keyframes badgeFloat{0%,100%{transform:rotateX(6deg) rotateY(-8deg) translateY(0);}50%{transform:rotateX(6deg) rotateY(-8deg) translateY(-4px);}}
+@keyframes shadowPulse{0%,100%{transform:translateX(-50%) scale(1);opacity:1;}50%{transform:translateX(-50%) scale(0.85);opacity:0.6;}}
+@keyframes badgeShimmer{0%,100%{transform:rotate(0deg);opacity:0.5;}50%{transform:rotate(180deg);opacity:1;}}
+@keyframes badgeSpin{to{transform:rotate(360deg);}}
+/* 品牌文字 - 整体同时出场 */
+.brand-title{font-size:48px;font-weight:800;line-height:1.2;margin:4px 0 6px;
   background:linear-gradient(135deg,#007AFF,#AF52DE,#FF2D55,#FF9500,#34C759);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  clip-path:inset(0 100% 0 0);opacity:0;
-  animation:charReveal 0.7s cubic-bezier(0.34,1.56,0.64,1) var(--d) forwards;}
-@keyframes charReveal{
-  0%{clip-path:inset(0 100% 0 0);transform:rotate(-10deg) scale(0.3);opacity:0;}
-  60%{clip-path:inset(0 0% 0 0);transform:rotate(3deg) scale(1.12);opacity:1;}
-  100%{clip-path:inset(0 0 0 0);transform:rotate(0deg) scale(1);opacity:1;}}
-.char-wrap.glow .char{animation:glowPulse 2.5s ease-in-out infinite;}
-@keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(0,122,255,0.15));}50%{filter:drop-shadow(0 0 16px rgba(175,82,222,0.35));}}
-.sub-text{color:#86868b;font-size:14px;margin:8px 0 16px;opacity:0;animation:fadeUp 0.6s ease-out 2.2s forwards;}
-.load-track{width:180px;height:3px;background:rgba(0,0,0,0.06);border-radius:4px;margin:18px auto;overflow:hidden;opacity:0;animation:showBar 0.3s ease-out 2.2s forwards;}
-.load-bar{height:100%;width:0%;border-radius:4px;
-  background:linear-gradient(90deg,#007AFF,#AF52DE,#FF2D55,#FF9500,#34C759);
-  background-size:200% 100%;animation:loadFill 1.5s ease-in 2.4s forwards,gradShift 2s linear 2.4s infinite;}
-@keyframes loadFill{to{width:100%;}}
-@keyframes gradShift{to{background-position:200% 0;}}
-@keyframes showBar{to{opacity:1;}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-/* ===== 入口按钮 ===== */
-.enter-area{opacity:0;animation:fadeUp 0.8s ease-out 3.5s forwards;margin-top:8px;}
-.enter-btn{display:inline-flex;align-items:center;gap:8px;
-  padding:14px 36px;border-radius:999px;font-size:16px;font-weight:600;
-  background:rgba(71,133,168,0.12);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,0.9);color:#4785a8;cursor:pointer;text-decoration:none;
-  box-shadow:0 4px 16px rgba(71,133,168,0.10),inset 0 1px 0 rgba(255,255,255,0.9);
-  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);user-select:none;}
-.enter-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(71,133,168,0.20),inset 0 1px 0 rgba(255,255,255,0.9);background:rgba(71,133,168,0.18);}
+  opacity:0;transform:translateY(10px) scale(0.96);
+  animation:brandReveal 0.7s cubic-bezier(0.25,0.1,0.25,1) 0.35s forwards;}
+@keyframes brandReveal{from{opacity:0;transform:translateY(10px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+.brand-title.glow{animation:brandGlow 3s ease-in-out infinite 1.0s,brandReveal 0.7s cubic-bezier(0.25,0.1,0.25,1) 0.35s forwards;}
+@keyframes brandGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(0,122,255,0.10));}50%{filter:drop-shadow(0 0 14px rgba(175,82,222,0.25));}}
+/* 副标题 */
+.sub-text{color:#86868b;font-size:14px;margin:4px 0 14px;
+  opacity:0;transform:translateY(6px);
+  animation:fadeUp 0.5s cubic-bezier(0.25,0.1,0.25,1) 0.7s forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+/* 入口按钮 */
+.enter-area{opacity:0;transform:translateY(8px);
+  animation:fadeUp 0.5s cubic-bezier(0.25,0.1,0.25,1) 1.0s forwards;margin-top:4px;}
+.enter-btn{display:inline-flex;align-items:center;gap:6px;
+  padding:13px 34px;border-radius:999px;font-size:15px;font-weight:600;
+  background:rgba(71,133,168,0.1);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(71,133,168,0.2);color:#4785a8;cursor:pointer;text-decoration:none;
+  box-shadow:0 2px 12px rgba(71,133,168,0.08),inset 0 1px 0 rgba(255,255,255,0.9);
+  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);user-select:none;position:relative;overflow:hidden;}
+.enter-btn::before{content:'';position:absolute;inset:-2px;border-radius:999px;
+  background:conic-gradient(from 0deg,transparent,rgba(71,133,168,0.15),rgba(175,82,222,0.1),rgba(0,122,255,0.15),transparent);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;padding:2px;
+  animation:btnSpin 4s linear infinite;}
+@keyframes btnSpin{to{transform:rotate(360deg);}}
+.enter-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(71,133,168,0.18);}
 .enter-btn:active{transform:scale(0.96);}
-.bookmark-tip{color:#aeaeb2;font-size:11px;margin-top:10px;opacity:0;animation:fadeUp 0.6s ease-out 4.5s forwards;}
+.bookmark-tip{color:#aeaeb2;font-size:11px;margin-top:8px;
+  opacity:0;animation:fadeUp 0.4s ease-out 1.2s forwards;}
 /* ===== 🌱 小树修复动画 ===== */
 .heal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;
   background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,122,255,0.08) 0%,transparent 60%),
@@ -247,19 +277,14 @@ body{
 </head>
 <body>
 <div class="card">
-  <div class="logo">📚</div>
-  <div class="char-wrap" id="charWrap">
-    <span class="char" style="--d:0.0s">乐</span>
-    <span class="char" style="--d:0.25s">吧</span>
-    <span class="char" style="--d:0.50s">公</span>
-    <span class="char" style="--d:0.75s">益</span>
-    <span class="char" style="--d:1.00s">中</span>
-    <span class="char" style="--d:1.25s">心</span>
+  <div class="badge-wrap">
+    <div class="badge-glass"><span class="badge-icon">乐</span></div>
+    <div class="badge-shadow"></div>
   </div>
-  <div class="sub-text">✨ 系统入口已就绪</div>
-  <div class="load-track"><div class="load-bar"></div></div>
+  <div class="brand-title" id="brandTitle">乐吧公益中心</div>
+  <div class="sub-text">轻触进入 · 乐吧系统</div>
   <div class="enter-area">
-    <a href="https://35d84c29.r23.cpolar.top/gateway/" class="enter-btn" id="enterBtn">🏛️ 进入乐吧系统</a>
+    <a href="https://35d84c29.r23.cpolar.top/gateway/" class="enter-btn" id="enterBtn">进入系统</a>
     <div class="bookmark-tip">📌 收藏此页面，随时回来</div>
     <div class="pwa-area" id="pwaArea">
       <button class="pwa-btn" id="pwaBtn" onclick="installPWA()">📲 安装到主屏幕</button>
@@ -268,16 +293,11 @@ body{
 </div>
 
 <script>
-// 字符动画
-var chars = document.querySelectorAll('.char');
-var total = chars.length;
-var done = 0;
-chars.forEach(function(el){
-  el.addEventListener('animationend', function(){
-    done++;
-    if(done >= total) document.getElementById('charWrap').classList.add('glow');
-  });
-});
+// 品牌文字入场完成后开启呼吸光晕
+setTimeout(function(){
+  var t = document.getElementById('brandTitle');
+  if(t) t.classList.add('glow');
+}, 1200);
 
 // 🌱 小树修复场景HTML
 var TREE_HTML = '<div class="heal-overlay" id="healOverlay">' +
