@@ -222,22 +222,6 @@ chars.forEach(function(el){
     if(done >= total) document.getElementById('charWrap').classList.add('glow');
   });
 });
-// Service Worker 版本检测
-if ('serviceWorker' in navigator && !sessionStorage.getItem('sw_updated')) {
-  sessionStorage.setItem('sw_updated', '1');
-  navigator.serviceWorker.getRegistration('/lebacenter/').then(function(reg) {
-    if (reg && reg.active && !reg.active.scriptURL.includes('leba-v2')) {
-      fetch('/lebacenter/sw.js', {cache:'no-store'}).then(function(r){return r.text();}).then(function(code){
-        if (code.includes('leba-v2')) {
-          reg.update().then(function() {
-            if (reg.installing) reg.installing.postMessage({type:'SKIP_WAITING'});
-            window.location.reload();
-          });
-        }
-      }).catch(function(){});
-    }
-  });
-}
 
 // 🌱 小树修复场景HTML
 var TREE_HTML = '<div class="heal-overlay" id="healOverlay">' +
@@ -256,60 +240,84 @@ var TREE_HTML = '<div class="heal-overlay" id="healOverlay">' +
   '<div class="heal-progress"><div class="heal-dot"></div><div class="heal-dot"></div><div class="heal-dot"></div></div>' +
   '<div class="heal-status" id="healStatus">检测到异常，正在启动修复…</div></div></div>';
 
-// 入口按钮点击
-var target = 'https://49b797be.r23.cpolar.top/gateway/';
-var baseUrl = 'https://49b797be.r23.cpolar.top';
+// ===== 从url.json获取最新cpolar URL（永远可访问，github.io）=====
+var URL_JSON = '/lebacenter/url.json';
+var target = '';  // 动态获取，不再硬编码
+var baseUrl = '';
 var btn = document.getElementById('enterBtn');
-var MAX_RETRIES = 12;  // 最多等60秒
+var MAX_RETRIES = 12;
 var retryCount = 0;
+
+// 页面加载时先获取最新URL
+function fetchTunnelUrl() {
+  return fetch(URL_JSON + '?t=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){ return d.url || ''; })
+    .catch(function(){
+      // url.json没拿到，尝试直接从Flask的/api/tunnel-info获取
+      // 这个只能通过18888本机访问（GP Pages上跨域会失败）
+      return '';
+    });
+}
+
+// 预加载URL（页面展示动画期间静默完成）
+var urlPromise = fetchTunnelUrl();
 
 btn.addEventListener('click', function(e){
   e.preventDefault();
   btn.textContent = '⏳ 检测中...';
   btn.style.pointerEvents = 'none';
-  var ctrl = new AbortController();
-  setTimeout(function(){ ctrl.abort(); }, 5000);
-  var url = btn.getAttribute('href') || target;
   
-  // 先插入页面过渡动画
-  var fadeDiv = document.createElement('div');
-  fadeDiv.className = 'page-fade';
-  fadeDiv.innerHTML = '<div class="pf-icon">📚</div><div class="pf-spinner"></div>';
-  document.body.appendChild(fadeDiv);
-  // 下一帧触发动画
-  requestAnimationFrame(function(){
-    fadeDiv.classList.add('show');
-  });
-  
-  fetch(url, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
-    .then(function(){
-      // 等淡出动画走完再跳转
-      setTimeout(function(){ window.location.href = target; }, 600);
-    })
-    .catch(function(){
-      // 移除过渡，显示小树动画
-      fadeDiv.remove();
-      showHealAnimation();
+  // 先拿到URL
+  urlPromise.then(function(url){
+    if (url) {
+      target = url + '/gateway/';
+      baseUrl = url;
+      btn.setAttribute('href', target);
+    } else {
+      // 没拿到URL，用旧的硬编码值兜底
+      target = btn.getAttribute('href') || target;
+      baseUrl = target.replace('/gateway/','');
+    }
+    
+    // 插入页面过渡动画
+    var fadeDiv = document.createElement('div');
+    fadeDiv.className = 'page-fade';
+    fadeDiv.innerHTML = '<div class="pf-icon">📚</div><div class="pf-spinner"></div>';
+    document.body.appendChild(fadeDiv);
+    requestAnimationFrame(function(){
+      fadeDiv.classList.add('show');
     });
+    
+    var ctrl = new AbortController();
+    setTimeout(function(){ ctrl.abort(); }, 5000);
+    
+    fetch(target, {method:'HEAD', mode:'no-cors', signal:ctrl.signal})
+      .then(function(){
+        setTimeout(function(){ window.location.href = target; }, 600);
+      })
+      .catch(function(){
+        fadeDiv.remove();
+        showHealAnimation();
+      });
+  });
 });
 
 function showHealAnimation(){
-  // 插入小树动画
   var div = document.createElement('div');
   div.innerHTML = TREE_HTML;
   document.body.appendChild(div.firstElementChild);
-  // 生长动画播完（2s）后，加healing类让循环动画开始
   setTimeout(function(){
     document.querySelector('.tree-scene').classList.add('healing');
   }, 2200);
-  // 第1步：调自愈API
   triggerHeal();
 }
 
 function triggerHeal(){
   var status = document.getElementById('healStatus');
   status.textContent = '🔧 正在修复系统连接…';
-  // 调自愈API（POST /api/heal）
+  
+  // 先用当前baseUrl调/api/heal
   fetch(baseUrl + '/api/heal', {method:'POST', signal:AbortSignal.timeout(10000)})
     .then(function(r){ return r.json(); })
     .then(function(data){
@@ -318,12 +326,12 @@ function triggerHeal(){
       } else {
         status.textContent = '⚠️ 自动修复部分完成，继续验证…';
       }
-      // 开始轮询检测
       startPolling();
     })
     .catch(function(){
       status.textContent = '⚠️ 修复指令已发出，等待系统恢复…';
-      // API本身不可达（cpolar完全挂了），仍尝试轮询
+      // 同时尝试重新获取url.json（可能CDN已更新）
+      urlPromise = fetchTunnelUrl();
       startPolling();
     });
 }
@@ -338,29 +346,34 @@ function pollUrl(){
   var status = document.getElementById('healStatus');
   var card = document.getElementById('healCard');
   
-  fetch(baseUrl + '/gateway/', {method:'HEAD', mode:'no-cors', signal:AbortSignal.timeout(5000)})
-    .then(function(){
-      // ✅ 通了！
-      status.textContent = '✅ 系统已恢复！正在跳转…';
-      status.className = 'heal-status ok';
-      card.classList.add('success');
-      // 等花朵动画放完再跳转
-      setTimeout(function(){ window.location.href = target; }, 1200);
-    })
-    .catch(function(){
-      if (retryCount >= MAX_RETRIES) {
-        // 修不好，弹维护窗
-        status.textContent = '❌ 暂时无法恢复';
-        status.className = 'heal-status fail';
-        document.getElementById('healOverlay').style.display = 'none';
-        showMaintenancePopup();
-        btn.textContent = '🏛️ 进入乐吧系统';
-        btn.style.pointerEvents = 'auto';
-        return;
-      }
-      status.textContent = '🔄 检测中 (' + retryCount + '/' + MAX_RETRIES + ')…';
-      setTimeout(pollUrl, 5000);
-    });
+  // 每次轮询前也尝试刷新url.json（CDN可能刚同步）
+  fetchTunnelUrl().then(function(newUrl){
+    if (newUrl && newUrl !== baseUrl.replace('/gateway/','')) {
+      baseUrl = newUrl;
+      target = newUrl + '/gateway/';
+    }
+    
+    fetch(baseUrl + '/gateway/', {method:'HEAD', mode:'no-cors', signal:AbortSignal.timeout(5000)})
+      .then(function(){
+        status.textContent = '✅ 系统已恢复！正在跳转…';
+        status.className = 'heal-status ok';
+        card.classList.add('success');
+        setTimeout(function(){ window.location.href = target; }, 1200);
+      })
+      .catch(function(){
+        if (retryCount >= MAX_RETRIES) {
+          status.textContent = '❌ 暂时无法恢复';
+          status.className = 'heal-status fail';
+          document.getElementById('healOverlay').style.display = 'none';
+          showMaintenancePopup();
+          btn.textContent = '🏛️ 进入乐吧系统';
+          btn.style.pointerEvents = 'auto';
+          return;
+        }
+        status.textContent = '🔄 检测中 (' + retryCount + '/' + MAX_RETRIES + ')…';
+        setTimeout(pollUrl, 5000);
+      });
+  });
 }
 
 // 维护弹窗
