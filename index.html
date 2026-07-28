@@ -153,20 +153,76 @@ body{
 .pwa-btn{background:none;border:none;font-size:12px;color:#86868b;cursor:pointer;padding:6px 14px;border-radius:8px;transition:all 0.3s;}
 .pwa-btn:hover{background:rgba(0,0,0,0.04);color:#4785a8;}
 .pwa-btn.installed{color:#34c759;cursor:default;}
-/* ===== 页面过渡 ===== */
-.page-fade{position:fixed;top:0;left:0;width:100%;height:100%;z-index:999998;
-  background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,122,255,0.08) 0%,transparent 60%),
-    radial-gradient(ellipse 50% 30% at 80% 80%,rgba(175,82,222,0.06) 0%,transparent 50%),
-    linear-gradient(135deg,#f0f2f5,#e4e8ee);
-  pointer-events:none;opacity:0;transition:opacity 0.5s ease-out;}
-.page-fade.show{opacity:1;}
-.page-fade .pf-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;animation:fadeScale 0.6s ease-out;}
-@keyframes fadeScale{0%{opacity:0;transform:translate(-50%,-50%) scale(0.5);}100%{opacity:1;transform:translate(-50%,-50%) scale(1);}}
-/* 登录页加载圈 */
-.page-fade .pf-spinner{position:absolute;top:calc(50% + 40px);left:50%;transform:translateX(-50%);
-  width:20px;height:20px;border:2px solid rgba(71,133,168,0.15);border-top-color:#4785a8;border-radius:50%;
-  animation:pfSpin 0.8s linear infinite;opacity:0;animation-fill-mode:forwards;animation-delay:0.3s;}
-@keyframes pfSpin{to{transform:translateX(-50%) rotate(360deg);}}
+/* ===== 🎬 大片级光爆Portal过渡 ===== */
+/* Stage 1: 粒子汇聚 */
+@keyframes partGather{0%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(0.6);}100%{opacity:0;transform:translate(0,0) scale(1);}}
+.cine-layer{position:fixed;top:0;left:0;width:100%;height:100%;z-index:999998;pointer-events:none;overflow:hidden;
+  opacity:0;transition:opacity 0.15s ease;}
+.cine-layer.show{opacity:1;}
+/* 暗场 */
+.cine-dark{position:absolute;inset:0;background:rgba(10,10,20,0.92);opacity:0;animation:cineDarkIn 0.2s ease-out forwards;}
+@keyframes cineDarkIn{from{opacity:0;}to{opacity:1;}}
+/* 光爆中心 */
+.cine-core{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:4px;height:4px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,1),rgba(175,82,222,0.8),rgba(0,122,255,0.4),transparent);
+  box-shadow:0 0 40px 20px rgba(175,82,222,0.3);
+  animation:cineCore 0.5s cubic-bezier(0.25,0.1,0.25,1) forwards;}
+@keyframes cineCore{0%{width:4px;height:4px;opacity:0;box-shadow:0 0 10px 2px rgba(175,82,222,0.1);}
+  30%{opacity:1;}
+  100%{width:300px;height:300px;opacity:0;box-shadow:0 0 80px 60px rgba(175,82,222,0);}}
+/* Portal光环环 */
+.cine-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:10px;height:10px;border-radius:50%;
+  border:2px solid rgba(255,255,255,0.6);
+  box-shadow:0 0 20px rgba(175,82,222,0.2),inset 0 0 20px rgba(71,133,168,0.1);
+  opacity:0;
+  animation:cineRing 0.7s cubic-bezier(0.25,0.1,0.25,1) 0.15s forwards;}
+@keyframes cineRing{0%{width:10px;height:10px;opacity:0;border-width:3px;}
+  40%{opacity:1;border-width:1px;}
+  100%{width:180vw;height:180vw;opacity:0;border-width:0.5px;}}
+/* 七彩流光粒子 */
+.cine-particle{position:absolute;top:50%;left:50%;width:6px;height:6px;border-radius:50%;
+  opacity:0;
+  animation:partFly 0.8s cubic-bezier(0.25,0.1,0.25,1) 0.1s forwards;}
+.cine-particle:nth-child(1){--sx:-80px;--sy:-60px;background:#FF6B35;animation-delay:0.05s;}
+.cine-particle:nth-child(2){--sx:90px;--sy:-40px;background:#AF52DE;animation-delay:0.12s;}
+.cine-particle:nth-child(3){--sx:-60px;--sy:70px;background:#007AFF;animation-delay:0.18s;}
+.cine-particle:nth-child(4){--sx:70px;--sy:50px;background:#34C759;animation-delay:0.24s;}
+.cine-particle:nth-child(5){--sx:-100px;--sy:-80px;background:#FF9500;animation-delay:0.08s;}
+.cine-particle:nth-child(6){--sx:110px;--sy:80px;background:#FF2D55;animation-delay:0.20s;}
+.cine-particle:nth-child(7){--sx:-40px;--sy:-100px;background:#5AC8FA;animation-delay:0.15s;}
+.cine-particle:nth-child(8){--sx:50px;--sy:-90px;background:#FFD60A;animation-delay:0.10s;}
+.cine-particle:nth-child(9){--sx:-90px;--sy:90px;background:#BF5AF2;animation-delay:0.22s;}
+.cine-particle:nth-child(10){--sx:80px;--sy:-100px;background:#64D2FF;animation-delay:0.28s;}
+@keyframes partFly{0%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(0.4);}
+  30%{opacity:1;}
+  100%{opacity:0;transform:translate(0,0) scale(0);}}
+/* Stage 2: 水波门户展开 */
+.cine-wave{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:0;height:0;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(220,230,255,0.9) 30%,rgba(175,82,222,0.3) 60%,transparent 70%);
+  animation:cineWave 0.6s cubic-bezier(0.25,0.1,0.25,1) 0.5s forwards;}
+@keyframes cineWave{0%{width:0;height:0;opacity:1;}
+  100%{width:200vw;height:200vw;opacity:0;}}
+/* Stage 3: 玻璃碎片飞散 */
+.cine-shard{position:absolute;top:50%;left:50%;border-radius:2px;opacity:0;
+  animation:shardBurst 0.7s ease-out 0.35s forwards;}
+.cine-shard:nth-child(11){width:30px;height:4px;background:linear-gradient(90deg,rgba(255,255,255,0.6),transparent);--dx:150px;--dy:-80px;--r:45deg;}
+.cine-shard:nth-child(12){width:20px;height:3px;background:linear-gradient(90deg,rgba(175,82,222,0.5),transparent);--dx:-120px;--dy:100px;--r:-30deg;}
+.cine-shard:nth-child(13){width:25px;height:3px;background:linear-gradient(90deg,rgba(0,122,255,0.5),transparent);--dx:100px;--dy:120px;--r:60deg;}
+.cine-shard:nth-child(14){width:18px;height:3px;background:linear-gradient(90deg,rgba(255,107,53,0.5),transparent);--dx:-140px;--dy:-60px;--r:-50deg;}
+@keyframes shardBurst{0%{opacity:1;transform:translate(0,0) rotate(0deg);}
+  100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--r));}}
+/* Stage 4: 纯净白场 - 入口 */
+.cine-white{position:absolute;inset:0;background:#fff;opacity:0;
+  animation:cineWhiteIn 0.3s ease-out 0.9s forwards;}
+@keyframes cineWhiteIn{from{opacity:0;}to{opacity:1;}}
+/* 成功跳转指示器 */
+.cine-label{position:absolute;top:calc(50% + 60px);left:50%;transform:translateX(-50%);
+  font-size:14px;font-weight:500;color:#86868b;letter-spacing:4px;
+  opacity:0;animation:cineLabel 0.6s ease-out 1.0s forwards;}
+@keyframes cineLabel{from{opacity:0;transform:translateX(-50%) translateY(8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
 /* ===== 原维护弹窗 ===== */
 .maint-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;
   background:rgba(0,0,0,0.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
@@ -280,13 +336,22 @@ btn.addEventListener('click', function(e){
       baseUrl = target.replace('/gateway/','');
     }
     
-    // 插入页面过渡动画
-    var fadeDiv = document.createElement('div');
-    fadeDiv.className = 'page-fade';
-    fadeDiv.innerHTML = '<div class="pf-icon">📚</div><div class="pf-spinner"></div>';
-    document.body.appendChild(fadeDiv);
+    // 🎬 大片级Portal光爆过渡
+    var cineDiv = document.createElement('div');
+    cineDiv.className = 'cine-layer';
+    cineDiv.innerHTML = '<div class="cine-dark"></div>' +
+      '<div class="cine-core"></div><div class="cine-ring"></div>' +
+      '<div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div>' +
+      '<div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div>' +
+      '<div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div>' +
+      '<div class="cine-particle"></div>' +
+      '<div class="cine-wave"></div>' +
+      '<div class="cine-shard"></div><div class="cine-shard"></div><div class="cine-shard"></div><div class="cine-shard"></div>' +
+      '<div class="cine-white"></div>' +
+      '<div class="cine-label">即将进入乐吧系统</div>';
+    document.body.appendChild(cineDiv);
     requestAnimationFrame(function(){
-      fadeDiv.classList.add('show');
+      cineDiv.classList.add('show');
     });
     
     var ctrl = new AbortController();
@@ -297,7 +362,7 @@ btn.addEventListener('click', function(e){
         setTimeout(function(){ window.location.href = target; }, 600);
       })
       .catch(function(){
-        fadeDiv.remove();
+        cineDiv.remove();
         showHealAnimation();
       });
   });
