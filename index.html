@@ -375,16 +375,17 @@ function cdnVerifyFinal(){
 var verifyRetries=0;
 function verifyAndRedirect(){
   var checkUrl=target||btn.getAttribute('href');
-  fetch(checkUrl,{method:'HEAD',signal:AbortSignal.timeout(5000)})
-    .then(function(r){
-      if(r.ok||r.status===302||r.status===200){
-        healProgress=100;healMessage='✅ 验证通过！即将跳转…';
-        setTimeout(function(){window.location.href=target;},1500);
-      }else{
-        retryVerify();
-      }
+  // 先用no-cors检测可达性（不读响应，只确认地址能通）
+  fetch(checkUrl,{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(5000)})
+    .then(function(){
+      // no-cors下即使通也是opaque(0)，没抛异常=可达
+      healProgress=100;healMessage='✅ 验证通过！即将跳转…';
+      setTimeout(function(){window.location.href=target;},1500);
     })
-    .catch(function(){retryVerify();});
+    .catch(function(e){
+      // 真正网络不通才重试
+      retryVerify();
+    });
 }
 
 function retryVerify(){
