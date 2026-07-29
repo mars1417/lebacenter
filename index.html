@@ -120,7 +120,7 @@ body{
 // ===== 🍎 下拉刷新 =====
 (function(){var b=document.body;if(!('ontouchstart'in window))return;var i=document.createElement('div');i.id='ptr-entry';i.innerHTML='<div style=\"width:22px;height:22px;border:3px solid rgba(71,133,168,0.15);border-top-color:#4785a8;border-radius:50%;margin-bottom:2px;\" class=\"ptr-spin\"></div><div style=\"font-size:11px;color:#86868b;\" class=\"ptr-text\">↓ 下拉刷新</div>';b.insertBefore(i,b.firstChild);var s=document.createElement('style');s.textContent='#ptr-entry{position:fixed;top:-60px;left:0;right:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:60px;padding-bottom:8px;background:rgba(245,245,247,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transition:top .35s cubic-bezier(0.25,0.1,0.25,1);pointer-events:none;}#ptr-entry.show{top:0;}#ptr-entry.ready .ptr-text{color:#4785a8;}#ptr-entry:not(.ready) .ptr-spin{animation:none;border-top-color:#4785a8!important;}#ptr-entry.refreshing .ptr-text{color:#4785a8;}@keyframes ptrSpin{to{transform:rotate(360deg);}}.ptr-spin{animation:ptrSpin .6s linear infinite;}';document.head.appendChild(s);var sy=0,pl=false;b.addEventListener('touchstart',function(e){var st=window.pageYOffset||document.documentElement.scrollTop||b.scrollTop||0;if(st>0){sy=0;return;}sy=e.touches[0].clientY;pl=true;i.classList.remove('ready','refreshing');i.classList.add('show');i.querySelector('.ptr-text').textContent='↓ 下拉刷新';},{passive:true});b.addEventListener('touchmove',function(e){if(!pl||!sy)return;var y=e.touches[0].clientY,md=y-sy;if(md<0){i.classList.remove('show','ready');pl=false;return;}i.style.top=Math.min(0,-60+md*0.4)+'px';if(md>80&&!i.classList.contains('ready')){i.classList.add('ready');i.querySelector('.ptr-text').textContent='松开刷新';}else if(md<=80){i.classList.remove('ready');i.querySelector('.ptr-text').textContent='↓ 下拉刷新';}},{passive:true});b.addEventListener('touchend',function(){if(!pl)return;pl=false;if(i.classList.contains('ready')){i.classList.remove('ready');i.classList.add('refreshing');i.querySelector('.ptr-text').textContent='刷新中…';i.style.top='0px';window.location.reload();}else{i.classList.remove('show');i.style.top='-60px';}sy=0;},{passive:true});})();
 
-// ===== 简版入口: 点按钮→抓url.json→跳转cpolar网关 =====
+// ===== 入口: 点按钮→检测→触发自愈→更新url.json→强刷CDN→跳转 =====
 var URL_JSON = '/lebacenter/url.json';
 var btn = document.getElementById('enterBtn');
 var errEl = document.getElementById('btnErr');
@@ -133,23 +133,63 @@ function setProgress(pct, msg){
   progArea.style.display = 'block';
   setTimeout(function(){progArea.classList.add('show');}, 10);
   progFill.style.width = pct + '%';
-  progPct.textContent = pct + '%';
+  progPct.textContent = Math.round(pct) + '%';
   if(msg) progText.textContent = msg;
 }
 
 function fetchTunnelUrl(){
-  setProgress(10, '⏳ 获取入口配置...');
   return fetch(URL_JSON+'?t='+Date.now())
-    .then(function(r){
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      setProgress(40, '📡 解析地址...');
-      return r.json();
-    })
-    .then(function(d){
-      if(!d || !d.url || d.url.length<5) throw new Error('无效地址');
-      setProgress(60, '🔄 准备跳转...');
-      return d.url;
-    });
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(function(d){if(!d||!d.url||d.url.length<5)throw new Error('无效地址');return d.url;});
+}
+
+function doRedirect(baseUrl){
+  btn.textContent = '🔄 跳转中...';
+  setProgress(100, '✅ 即将进入系统');
+  progFill.classList.add('complete');
+  progText.classList.add('done');
+  progPct.textContent = '100%';
+  setTimeout(function(){
+    window.location.href = (baseUrl||'').replace(/\/+$/,'') + '/gateway/';
+  }, 400);
+}
+
+function pollHealStatus(baseUrl){
+  var totalTime = 0;
+  function check(){
+    fetch(baseUrl + '/api/heal-status?t='+Date.now(), {signal:AbortSignal.timeout(6000)})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var p = d.progress || 0;
+        var msg = d.message || '处理中...';
+        setProgress(Math.min(p, 95), msg);
+        if(p >= 100){
+          // 自愈完成！从CDN重新读取最新的url.json
+          setProgress(97, '✅ 更新入口配置...');
+          fetchTunnelUrl().then(function(newUrl){
+            if(newUrl && newUrl.length>5 && newUrl !== baseUrl){
+              setProgress(99, '🔄 发现新地址，跳转中...');
+              doRedirect(newUrl);
+            } else {
+              doRedirect(baseUrl);
+            }
+          }).catch(function(){doRedirect(baseUrl);});
+        } else if(p < 0){
+          setProgress(90, '⚠️ 自愈异常');
+          setTimeout(function(){doRedirect(baseUrl);}, 1000);
+        } else {
+          totalTime += 1500;
+          if(totalTime > 120000){doRedirect(baseUrl);return;}
+          setTimeout(check, 1500);
+        }
+      })
+      .catch(function(){
+        if(totalTime > 120000){doRedirect(baseUrl);return;}
+        totalTime += 1500;
+        setTimeout(check, 1500);
+      });
+  }
+  setTimeout(check, 1500);
 }
 
 btn.addEventListener('click', function(e){
@@ -159,29 +199,44 @@ btn.addEventListener('click', function(e){
   errEl.classList.remove('show');
   errEl.textContent = '';
 
-  var ctrl = new AbortController();
-  setTimeout(function(){ctrl.abort();}, 10000);
+  setProgress(5, '⏳ 获取入口配置...');
 
+  // Step 1: 读取当前url.json
   fetchTunnelUrl()
     .then(function(url){
-      var gateway = url+'/gateway/';
-      setProgress(80, '🚀 即将进入系统...');
-      setTimeout(function(){
-        setProgress(100, '✅ 连接成功');
-        progFill.classList.add('complete');
-        progText.classList.add('done');
-        progPct.textContent = '100%';
-        setTimeout(function(){ window.location.href = gateway; }, 500);
-      }, 300);
+      setProgress(15, '🔍 检测网关连通性...');
+      // Step 2: 检测网关是否可达
+      return fetch(url+'/api/health', {signal:AbortSignal.timeout(6000)})
+        .then(function(r){
+          if(!r.ok) throw new Error('health fail');
+          setProgress(20, '🔄 启动自愈检测...');
+          // Step 3: 触发后端自愈（检测最新隧道→更新url.json→推送到CDN）
+          return fetch(url+'/api/heal', {method:'POST', signal:AbortSignal.timeout(8000)});
+        })
+        .then(function(r){return r.json();})
+        .then(function(d){
+          if(d && d.ok){
+            setProgress(25, '🔄 检测最新隧道...');
+            pollHealStatus(url);
+          } else {
+            doRedirect(url);
+          }
+        })
+        .catch(function(){
+          // 网关可达但heal接口异常，直接跳
+          setProgress(80, '🚀 即将进入系统...');
+          doRedirect(url);
+        });
     })
     .catch(function(err){
+      // url.json都读不到 → 系统完全不可达
       btn.textContent = '进入系统';
       btn.classList.remove('loading');
       progArea.style.display = 'none';
       progArea.classList.remove('show');
       errEl.textContent = '⚠️ 系统暂时不可达，请稍后再试';
       errEl.classList.add('show');
-      console.error('入口跳转失败:', err);
+      console.error('入口失败:', err);
     });
 });
 
