@@ -25,13 +25,8 @@ body{
   box-shadow:0 24px 80px rgba(0,0,0,0.06),0 0 0 1px rgba(255,255,255,0.8);
   animation:cardIn 0.8s cubic-bezier(0.15,0.85,0.35,1) forwards;
 }
-.card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#4785a8,#6da8a0,#8fc1b5,#6da8a0,#4785a8);
-  background-size:200% 100%;animation:waveShift 4s ease-in-out infinite
-}
-@keyframes waveShift{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
-@keyframes cardIn{from{opacity:0;transform:scale(0.92) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+
 .badge-wrap{position:relative;width:80px;height:80px;margin:0 auto 8px;perspective:800px}
 .badge-glass{
   width:80px;height:80px;border-radius:50%;
