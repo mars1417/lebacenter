@@ -378,100 +378,78 @@ function startAutoProgress2(){
 }
 
 // ===== 验证门禁（核心！不通过不跳转） =====
+function fetchHealth(url){
+  return fetch(url+'/api/health',{method:'GET',mode:'cors',signal:AbortSignal.timeout(8000)})
+    .then(function(r){
+      if(r.status!==200)throw new Error('status '+r.status);
+      return r.json();
+    })
+    .then(function(d){
+      if(!d||d.service!=='leba-gateway')throw new Error('not gateway');
+      return true;
+    });
+}
+
+// ===== 验证门禁 v2（用/api/health + CORS真实读状态码） =====
 function startVerifyGate(){
   VERIFY_RETRIES=0;
   healProgress=92;healMessage='🔄 获取最新公网地址…';
-  VERIFY_URL=target||btn.getAttribute('href')||'';
   doVerifyGate();
 }
 
 function doVerifyGate(){
   healProgress=93;
-  
-  // Step 1: 从GP刷新url.json，获取最新URL
+  // Step 1: 从GP读取url.json获取最新URL
   fetchTunnelUrl().then(function(nu){
     if(nu&&nu.length>5){
-      VERIFY_URL=nu+'/gateway/';
       baseUrl=nu;
+      target=nu+'/gateway/';
     }
-    // Step 2: HEAD验证网关可达性
-    healProgress=94;healMessage='🔍 验证1/2：服务连通性…';
-    doHeadVerify();
-  }).catch(function(){
-    // 读不到url.json → 用缓存URL继续
-    healProgress=93;healMessage='读取配置中…';
-    doHeadVerify();
-  });
-}
-
-function doHeadVerify(){
-  var checkUrl=VERIFY_URL||target||btn.getAttribute('href');
-  if(!checkUrl||checkUrl===''){
-    healProgress=90;healMessage='⚠️ 未获取到地址，重新获取…';
-    setTimeout(startVerifyGate,3000);
-    return;
-  }
-  // no-cors模式：跨域HEAD请求，不抛异常=能通
-  fetch(checkUrl,{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(8000)})
-    .then(function(){
-      // 通了！Step 3：双重确认——再次读取url.json对比
-      healProgress=96;healMessage='🔍 验证2/2：双重确认地址…';
-      doSecondRead();
-    })
-    .catch(function(){
-      // 没通！保持树动画，继续重试
-      healProgress=88;healMessage='🌱 通道检测中，继续培育…';
+    if(!baseUrl||baseUrl.length<5){
+      healProgress=90;healMessage='⚠️ 未获取到地址';
       VERIFY_RETRIES++;
-      // 指数退避：3s→5s→8s→12s→20s→30s（之后保持30s）
+      setTimeout(startVerifyGate,Math.min(30000,3000+VERIFY_RETRIES*2000));
+      return;
+    }
+    // Step 2: 用/api/health验证（CORS模式，能读真实状态码和响应体）
+    healProgress=94;healMessage='🔍 验证1/1：网关连通性…';
+    fetchHealth(baseUrl).then(function(){
+      healProgress=98;healMessage='✅ 验证通过！';
+      MODE='complete';
+      doFinalConfirm();
+    }).catch(function(){
+      // 真正的网络不通或状态码不对 → 保持动画继续重试
+      healProgress=85;healMessage='🌱 通道检测中，继续培育…';
+      VERIFY_RETRIES++;
       var delay=Math.min(30000,3000+VERIFY_RETRIES*VERIFY_RETRIES*2000);
       setTimeout(startVerifyGate,delay);
     });
-}
-
-function doSecondRead(){
-  // 第二次读取url.json，确认地址稳定
-  fetchTunnelUrl().then(function(nu2){
-    // 对比两次URL是否一致
-    var targetUrl=VERIFY_URL||target;
-    if(nu2&&nu2.length>5){
-      baseUrl=nu2;
-      VERIFY_URL=nu2+'/gateway/';
-      target=VERIFY_URL;
-    }
-    // 最终确认：再HEAD一次确保准备就绪
-    healProgress=98;healMessage='🌳 培育完成！准备进入系统…';
-    MODE='complete';
-    doFinalConfirm();
   }).catch(function(){
-    // 第二次读失败，但第一次HEAD已经通过了 → 用第一次的URL
-    healProgress=98;healMessage='🌳 培育完成！';
-    MODE='complete';
-    doFinalConfirm();
+    // url.json读不到，重试
+    healProgress=90;healMessage='⏳ 读取入口配置…';
+    VERIFY_RETRIES++;
+    setTimeout(startVerifyGate,5000);
   });
 }
 
 function doFinalConfirm(){
-  var finalUrl=VERIFY_URL||target||btn.getAttribute('href');
+  var finalUrl=target||(baseUrl?baseUrl+'/gateway/':'');
   if(!finalUrl||finalUrl===''){
-    healProgress=85;healMessage='⚠️ 请稍候…';
+    healProgress=85;healMessage='⚠️ 重新获取地址…';
     MODE='healing';
     setTimeout(startVerifyGate,5000);
     return;
   }
-  // 最后一次快速验证
-  fetch(finalUrl,{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(5000)})
-    .then(function(){
-      healProgress=100;healMessage='✅ 准备就绪！';
-      // 成功！树开花1.5秒后跳转
-      setTimeout(function(){window.location.href=finalUrl;},1500);
-    })
-    .catch(function(){
-      // 最后一刻还是不通 → 回到循环
-      healProgress=85;healMessage='🌱 重新扎根…';
-      MODE='healing';
-      VERIFY_RETRIES++;
-      setTimeout(startVerifyGate,5000);
-    });
+  // 最后一次快速验证（用/api/health确认网关仍在运行）
+  fetchHealth(baseUrl).then(function(){
+    healProgress=100;healMessage='✅ 准备就绪！';
+    setTimeout(function(){window.location.href=finalUrl;},1500);
+  }).catch(function(){
+    healProgress=85;healMessage='🌱 重新扎根…';
+    MODE='healing';
+    VERIFY_RETRIES++;
+    setTimeout(startVerifyGate,5000);
+  });
 }
 
 // GO!
