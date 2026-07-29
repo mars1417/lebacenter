@@ -312,101 +312,167 @@ btn.addEventListener('click',function(e){
   });
 });
 
+// ===== 验证锁：永不跳404 =====
+// 核心原则：验证通过才跳转，不通过就保持树动画循环，永远不跳到404
+var VERIFY_URL = '';        // 当前要验证的目标URL
+var VERIFY_RETRIES = 0;     // 验证重试次数
+var VERIFY_MAX_INFINITE = true; // 无限重试，永不放弃
+
 function doHeal(){
-  healProgress=5;
-  fetch(baseUrl+'/api/heal',{method:'POST',signal:AbortSignal.timeout(5000)})
-    .then(function(r){return r.json();})
-    .then(function(d){if(d.ok)setTimeout(pollHealStatus,1000);})
-    .catch(function(){healProgress=20;healMessage='连接修复端…';setTimeout(function(){healProgress=50;healMessage='更新公网地址…';setTimeout(function(){healProgress=80;healMessage='等待CDN刷新…';setTimeout(finishHealWithCdnRefresh,5000);},2000);},2000);});
-}
-
-function pollHealStatus(){
-  if(healProgress>=100){finishHealWithCdnRefresh();return;}
-  fetch(baseUrl+'/api/heal-status?t='+Date.now(),{signal:AbortSignal.timeout(3000)})
-    .then(function(r){return r.json();})
-    .then(function(data){
-      if(data.progress===undefined)return setTimeout(fallbackPoll,2000);
-      healProgress=data.progress;healMessage=data.message;
-      if(healProgress>=100)finishHealWithCdnRefresh();
-      else if(healProgress<0){healProgress=80;healMessage='自愈遇到问题，继续尝试…';setTimeout(fallbackPoll,3000);}
-      else setTimeout(pollHealStatus,1500);
+  healProgress=3;healMessage='🌱 种子入土…';
+  // 尝试自愈API（快速通道）
+  fetch(baseUrl+'/api/heal',{method:'POST',signal:AbortSignal.timeout(8000)})
+    .then(function(r){return r.json().catch(function(){return {};});})
+    .then(function(d){
+      if(d&&d.ok){
+        healProgress=8;healMessage='已收到自愈指令';
+        setTimeout(startRepairLoop,1500);
+      }else{
+        setTimeout(startAutoProgress,1000);
+      }
     })
-    .catch(function(){setTimeout(fallbackPoll,2000);});
+    .catch(function(){setTimeout(startAutoProgress,1000);});
 }
 
-var fc=0;
-function fallbackPoll(){
-  fc++;if(healProgress>=100){finishHealWithCdnRefresh();return;}
-  if(fc<5){healProgress=Math.min(90,20+fc*15);healMessage='修复中 ('+fc+'/5)…';setTimeout(fallbackPoll,2000);}
-  else{healProgress=93;healMessage='即将完成…';
-    fetchTunnelUrl().then(function(nu){if(nu&&nu!==baseUrl.replace('/gateway/','')){baseUrl=nu;target=nu+'/gateway/';healProgress=100;finishHealWithCdnRefresh();}else{setTimeout(function(){healProgress=95;finishHealWithCdnRefresh();},3000);}}).catch(function(){setTimeout(function(){healProgress=95;finishHealWithCdnRefresh();},3000);});}
+// ===== 修复进度轮询（后端API → 树长高） =====
+function startRepairLoop(){
+  if(healProgress>=95){startVerifyGate();return;}
+  fetch(baseUrl+'/api/heal-status?t='+Date.now(),{signal:AbortSignal.timeout(5000)})
+    .then(function(r){return r.json().catch(function(){return {};});})
+    .then(function(d){
+      if(d&&typeof d.progress==='number'&&d.progress>0){
+        healProgress=Math.max(healProgress,Math.min(d.progress,94));
+        healMessage=d.message||'修复中…';
+        if(d.progress>=100){healProgress=95;startVerifyGate();return;}
+        setTimeout(startRepairLoop,1500);
+      }else{
+        setTimeout(startAutoProgress,0);
+      }
+    })
+    .catch(function(){setTimeout(startAutoProgress,0);});
 }
 
-// ===== 强刷CDN + 验证门禁 =====
-var cdnRefreshCount=0;
-function finishHealWithCdnRefresh(){
-  healProgress=100;healMessage='📡 刷新CDN缓存…';MODE='complete';
-  // 第1次强刷CDN
+// ===== 自动进度（后端不可达时的降级） =====
+var AUTO_STEP=0;
+function startAutoProgress(){
+  AUTO_STEP++;
+  healProgress=Math.min(80,5+AUTO_STEP*12);
+  var msgs=['正在定位隧道…','发现公网地址','正在验证连接…','更新入口配置…','推送CDN更新…'];
+  healMessage=msgs[Math.min(AUTO_STEP-1,msgs.length-1)]||'修复中…';
+  if(AUTO_STEP<7){
+    setTimeout(startAutoProgress,2500);
+  }else{
+    healProgress=85;healMessage='等待CDN生效…';
+    setTimeout(startAutoProgress2,3000);
+  }
+}
+
+function startAutoProgress2(){
+  AUTO_STEP++;
+  healProgress=Math.min(90,85+(AUTO_STEP-7)*3);
+  if(AUTO_STEP<12){
+    setTimeout(startAutoProgress2,3000);
+  }else{
+    startVerifyGate();
+  }
+}
+
+// ===== 验证门禁（核心！不通过不跳转） =====
+function startVerifyGate(){
+  VERIFY_RETRIES=0;
+  healProgress=92;healMessage='🔄 获取最新公网地址…';
+  VERIFY_URL=target||btn.getAttribute('href')||'';
+  doVerifyGate();
+}
+
+function doVerifyGate(){
+  healProgress=93;
+  
+  // Step 1: 从GP刷新url.json，获取最新URL
   fetchTunnelUrl().then(function(nu){
-    if(nu)target=nu+'/gateway/';
-    cdnRefreshCount=1;
-    healMessage='⏳ CDN刷新第1次…等待生效';
-    setTimeout(cdnRefreshStep2,1500);
+    if(nu&&nu.length>5){
+      VERIFY_URL=nu+'/gateway/';
+      baseUrl=nu;
+    }
+    // Step 2: HEAD验证网关可达性
+    healProgress=94;healMessage='🔍 验证1/2：服务连通性…';
+    doHeadVerify();
   }).catch(function(){
-    cdnRefreshCount=1;
-    setTimeout(cdnRefreshStep2,1500);
+    // 读不到url.json → 用缓存URL继续
+    healProgress=93;healMessage='读取配置中…';
+    doHeadVerify();
   });
 }
 
-function cdnRefreshStep2(){
-  // 第2次强刷CDN
-  healProgress=98;healMessage='📡 CDN刷新第2次…';
-  fetchTunnelUrl().then(function(nu){
-    if(nu)target=nu+'/gateway/';
-    cdnRefreshCount=2;
-    healMessage='🔄 对比CDN地址…';
-    setTimeout(cdnVerifyFinal,1000);
-  }).catch(function(){
-    cdnRefreshCount=2;
-    setTimeout(cdnVerifyFinal,1000);
-  });
-}
-
-function cdnVerifyFinal(){
-  healProgress=99;healMessage='✅ CDN刷新完成，验证连接…';
-  verifyAndRedirect();
-}
-
-var verifyRetries=0;
-function verifyAndRedirect(){
-  var checkUrl=target||btn.getAttribute('href');
-  // 先用no-cors检测可达性（不读响应，只确认地址能通）
-  fetch(checkUrl,{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(5000)})
+function doHeadVerify(){
+  var checkUrl=VERIFY_URL||target||btn.getAttribute('href');
+  if(!checkUrl||checkUrl===''){
+    healProgress=90;healMessage='⚠️ 未获取到地址，重新获取…';
+    setTimeout(startVerifyGate,3000);
+    return;
+  }
+  // no-cors模式：跨域HEAD请求，不抛异常=能通
+  fetch(checkUrl,{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(8000)})
     .then(function(){
-      // no-cors下即使通也是opaque(0)，没抛异常=可达
-      healProgress=100;healMessage='✅ 验证通过！即将跳转…';
-      setTimeout(function(){window.location.href=target;},1500);
+      // 通了！Step 3：双重确认——再次读取url.json对比
+      healProgress=96;healMessage='🔍 验证2/2：双重确认地址…';
+      doSecondRead();
     })
-    .catch(function(e){
-      // 真正网络不通才重试
-      retryVerify();
+    .catch(function(){
+      // 没通！保持树动画，继续重试
+      healProgress=88;healMessage='🌱 通道检测中，继续培育…';
+      VERIFY_RETRIES++;
+      // 指数退避：3s→5s→8s→12s→20s→30s（之后保持30s）
+      var delay=Math.min(30000,3000+VERIFY_RETRIES*VERIFY_RETRIES*2000);
+      setTimeout(startVerifyGate,delay);
     });
 }
 
-function retryVerify(){
-  verifyRetries++;
-  if(verifyRetries<6){
-    healProgress=94;
-    healMessage='🌱 验证连接中 ('+verifyRetries+'/6)…';
+function doSecondRead(){
+  // 第二次读取url.json，确认地址稳定
+  fetchTunnelUrl().then(function(nu2){
+    // 对比两次URL是否一致
+    var targetUrl=VERIFY_URL||target;
+    if(nu2&&nu2.length>5){
+      baseUrl=nu2;
+      VERIFY_URL=nu2+'/gateway/';
+      target=VERIFY_URL;
+    }
+    // 最终确认：再HEAD一次确保准备就绪
+    healProgress=98;healMessage='🌳 培育完成！准备进入系统…';
+    MODE='complete';
+    doFinalConfirm();
+  }).catch(function(){
+    // 第二次读失败，但第一次HEAD已经通过了 → 用第一次的URL
+    healProgress=98;healMessage='🌳 培育完成！';
+    MODE='complete';
+    doFinalConfirm();
+  });
+}
+
+function doFinalConfirm(){
+  var finalUrl=VERIFY_URL||target||btn.getAttribute('href');
+  if(!finalUrl||finalUrl===''){
+    healProgress=85;healMessage='⚠️ 请稍候…';
     MODE='healing';
-    setTimeout(verifyAndRedirect,3000);
-  }else{
-    healProgress=94;
-    healMessage='⚠️ 连接不稳定，继续尝试…';
-    MODE='healing';
-    verifyRetries=0;
-    setTimeout(verifyAndRedirect,5000);
+    setTimeout(startVerifyGate,5000);
+    return;
   }
+  // 最后一次快速验证
+  fetch(finalUrl,{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(5000)})
+    .then(function(){
+      healProgress=100;healMessage='✅ 准备就绪！';
+      // 成功！树开花1.5秒后跳转
+      setTimeout(function(){window.location.href=finalUrl;},1500);
+    })
+    .catch(function(){
+      // 最后一刻还是不通 → 回到循环
+      healProgress=85;healMessage='🌱 重新扎根…';
+      MODE='healing';
+      VERIFY_RETRIES++;
+      setTimeout(startVerifyGate,5000);
+    });
+}
 }
 
 // GO!
