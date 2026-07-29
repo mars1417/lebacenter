@@ -88,7 +88,7 @@ var btn=document.getElementById('enterBtn');
 // ===== easeOutCubic 平滑曲线 =====
 function smoothPct(raw){var t=Math.min(1,raw/100);return 1-Math.pow(1-t,3);}
 
-// ===== 预生成草形数据（不再每帧随机） =====
+// ===== 预生成草形数据(不再每帧随机) =====
 var grassData=[];
 for(var i=0;i<200;i++){
   var x=i*Math.max(3,W/200);
@@ -122,161 +122,89 @@ for(var i=0;i<10;i++){
   petals.push({x:Math.random()*W,y:Math.random()*H*0.4,vx:(Math.random()-0.5)*0.3,vy:0.2+Math.random()*0.3,size:3+Math.random()*4,rotation:Math.random()*Math.PI*2,rotSpeed:(Math.random()-0.5)*0.05,alpha:0});
 }
 
-// ===== 绘制函数 =====
-function drawSky(pct,t){
-  var p=Math.min(1,pct);
-  var r,g,b;
-  if(p<0.3){var t0=p/0.3;r=24+(80-24)*t0;g=16+(50-16)*t0;b=30+(100-30)*t0;}
-  else if(p<0.7){var t1=(p-0.3)/0.4;r=80+(135-80)*t1;g=50+(160-50)*t1;b=100+(200-100)*t1;}
-  else{var t2=(p-0.7)/0.3;r=135+(200-135)*t2;g=160+(140-160)*t2;b=200+(100-200)*t2;}
-  var sa=(p-0.15)*Math.PI, sx=W*0.3+Math.cos(sa)*W*0.3, sy=H*0.7-Math.sin(sa)*H*0.5;
-  var bg=ctx.createRadialGradient(W/2,H*0.3,0,W/2,H*0.3,H*0.7);
-  bg.addColorStop(0,'rgb('+r+','+g+','+b+')');
-  bg.addColorStop(1,'rgb('+Math.floor(r*0.3)+','+Math.floor(g*0.3)+','+Math.floor(b*0.3)+')');
-  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-  if(p>0.05){var ga=Math.min(1,(p-0.05)/0.1)*0.12;var sg=ctx.createRadialGradient(sx,sy,0,sx,sy,80+p*40);sg.addColorStop(0,'rgba(255,220,180,'+ga+')');sg.addColorStop(0.5,'rgba(255,200,150,'+(ga*0.4)+')');sg.addColorStop(1,'transparent');ctx.fillStyle=sg;ctx.fillRect(0,0,W,H);}
-  // 云朵缓慢飘动
-  for(var i=0;i<clouds.length;i++){var c=clouds[i];c.x+=c.speed*Math.sin(t*0.0003+i);if(c.x>W+c.w)c.x=-c.w;ctx.fillStyle='rgba(255,255,255,'+(c.alpha*p)+')';ctx.beginPath();ctx.ellipse(c.x,c.y,c.w*0.5,c.w*0.18,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(c.x-c.w*0.15,c.y-3,c.w*0.35,c.w*0.15,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(c.x+c.w*0.2,c.y+1,c.w*0.3,c.w*0.13,0,0,Math.PI*2);ctx.fill();}
+// ===== 新版Canvas渲染: 几何线条树 + 橙绿配色 =====
+function smoothPct(raw){var t=Math.min(1,raw/100);return 1-Math.pow(1-t,3);}
+
+function initCanvasSafe(){
+  var c=document.getElementById('mainCanvas');
+  if(!c||!c.getContext)return false;
+  var cx=c.getContext('2d');
+  if(!cx)return false;
+  if(c.width===0||c.height===0)return false;
+  return true;
 }
 
-function drawGround(pct,wind){
-  if(pct<=0)return;
-  var gndY=H*0.78,gh=Math.min(pct/100*40+8,48);
-  var grd=ctx.createLinearGradient(0,gndY,0,H);
-  grd.addColorStop(0,'#5a7a3a');grd.addColorStop(0.2,'#4a6a2e');grd.addColorStop(0.5,'#3d5a25');grd.addColorStop(1,'#2a3d18');
-  ctx.fillStyle=grd;ctx.fillRect(0,gndY,W,H-gndY);
-  // 固定草形 + 整体微风偏移 (不再每帧Math.random)
-  ctx.strokeStyle='#6a9a4a';ctx.lineWidth=1.5;
-  for(var i=0;i<grassData.length;i++){
-    var g=grassData[i];if(g.x>W)break;
-    var h=gh*(0.3+g.h/48*0.7);
-    var wx=Math.sin(t*0.0008+g.x*0.01+wind)*1.5;
-    ctx.beginPath();ctx.moveTo(g.x,gndY);
-    ctx.quadraticCurveTo(g.x+wx+g.curve1,gndY-h*0.5,g.x+wx*1.5+g.curve2,gndY-h);
-    ctx.stroke();
-  }
-  var sh=ctx.createRadialGradient(W/2,gndY+5,0,W/2,gndY+5,40+pct*0.3);
-  sh.addColorStop(0,'rgba(0,0,0,0.15)');sh.addColorStop(1,'transparent');
-  ctx.fillStyle=sh;ctx.beginPath();ctx.arc(W/2,gndY+5,40+pct*0.3,0,Math.PI*2);ctx.fill();
+function drawBg(pct,t){
+  pct=Math.min(1,pct/100);var W=canvas.width,H=canvas.height;
+  ctx.fillStyle='#FDF8F3';ctx.fillRect(0,0,W,H);
+  var gndY=H*0.82;
+  ctx.strokeStyle='rgba(16,185,129,0.10)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(W*0.1,gndY);ctx.quadraticCurveTo(W*0.5,gndY-1,W*0.9,gndY);ctx.stroke();
+  if(pct>0){var g=ctx.createRadialGradient(W*0.5,gndY+10,0,W*0.5,gndY+10,W*0.35);g.addColorStop(0,'rgba(255,107,53,'+(0.03*pct)+')');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(W*0.5,gndY+10,W*0.35,W*0.08,0,0,Math.PI*2);ctx.fill();}
 }
 
-function drawTrunk(pct,t,wind){
-  if(pct<=0)return;
-  var gndY=H*0.78,maxH=H*0.35,th=pct*maxH,bw=8+pct*8,tw=2+pct*3,cx=W/2,by=gndY-th;
-  ctx.beginPath();
-  ctx.moveTo(cx-bw/2,gndY);
-  ctx.quadraticCurveTo(cx-bw/4+wind,gndY-th*0.5,cx-tw/2+wind*0.5,by);
-  ctx.quadraticCurveTo(cx+tw/2+wind*0.5,by,cx+bw/4+wind,gndY-th*0.3);
-  ctx.quadraticCurveTo(cx+bw/2,gndY,cx+bw/2,gndY);
-  ctx.closePath();
-  var tg=ctx.createLinearGradient(cx-bw/2,gndY,cx+bw/2,gndY);
-  tg.addColorStop(0,'#5a3a1a');tg.addColorStop(0.3,'#7a5a2a');tg.addColorStop(0.5,'#8a6a3a');tg.addColorStop(0.7,'#7a5a2a');tg.addColorStop(1,'#4a2a10');
-  ctx.fillStyle=tg;ctx.fill();
-  if(pct>0.1){ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=0.5;for(var i=0;i<5;i++){var lx=cx+(Math.random()-0.5)*bw*0.6,ly=gndY-Math.random()*th*0.6;ctx.beginPath();ctx.moveTo(lx,ly);ctx.quadraticCurveTo(lx+(Math.random()-0.5)*4,ly-Math.random()*10,lx+(Math.random()-0.5)*3,ly-Math.random()*15);ctx.stroke();}}
-}
-
-function drawBranches(pct,t,wind){
-  if(pct<10)return;
-  var gndY=H*0.78,maxH=H*0.35,th=pct*maxH,cx=W/2,topY=gndY-th;
-  var bc=Math.min(4,Math.floor(pct/15));
-  for(var i=0;i<bc;i++){
-    var ang=-Math.PI/2+(i%2===0?0.5:-0.5)+(Math.random()-0.5)*0.3,len=40+Math.random()*50,tk=3+Math.random()*2,by=topY+th*(0.2+Math.random()*0.4);
-    ctx.beginPath();ctx.moveTo(cx,by);
-    ctx.quadraticCurveTo(cx+Math.cos(ang)*len*0.5+wind*0.3,by+Math.sin(ang)*len*0.5-5,cx+Math.cos(ang)*len+wind*0.6,by+Math.sin(ang)*len-10);
-    ctx.strokeStyle='#6a4a2a';ctx.lineWidth=tk;ctx.lineCap='round';ctx.stroke();
-    if(pct>30){drawBranch(cx+Math.cos(ang)*len+wind*0.6,by+Math.sin(ang)*len-10,ang+(Math.random()-0.5)*0.5,len*(0.3+Math.random()*0.2),tk*0.5,1,3,pct,t,wind);}
+function drawTree(pct,t){
+  var p=Math.min(1,pct/100);if(p<=0)return;
+  var W=canvas.width,H=canvas.height,cx=W*0.5,gndY=H*0.82,maxH=H*0.38,th=p*maxH,topY=gndY-th;
+  var sway=Math.sin(t*0.001)*(1+p*2),sw2=sway*0.5;
+  // 树干(橙)
+  ctx.strokeStyle='#FF6B35';ctx.lineWidth=Math.max(1.5,2+p*3);ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(cx-2,gndY);ctx.quadraticCurveTo(cx-4+sway*0.3,gndY-th*0.4,cx-1+sw2,topY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx+2,gndY);ctx.quadraticCurveTo(cx+4+sway*0.3,gndY-th*0.4,cx+1+sw2,topY);ctx.stroke();
+  // 树枝(绿)
+  if(p>0.2){var bc=Math.min(4,Math.floor(p/0.15));ctx.strokeStyle='#10B981';ctx.lineWidth=1.2;
+    for(var i=0;i<bc;i++){var sd=i%2===0?1:-1,by=topY+th*(0.15+i*0.18),bx=cx+sd*p*3,len=(15+i*8)*p*0.6,ang=-Math.PI/2+sd*(0.4+i*0.05)+sway*0.01;
+      ctx.beginPath();ctx.moveTo(bx,by);ctx.quadraticCurveTo(bx+Math.cos(ang)*len*0.5,by+Math.sin(ang)*len*0.5-2,bx+Math.cos(ang)*len,by+Math.sin(ang)*len-5);ctx.stroke();}}
+  // 树冠(翠绿光晕)
+  if(p>0.25){var cr=(25+p*40)*(W/400),cy=topY-cr*0.35,cx2=cx+sway*0.3;
+    var cg=ctx.createRadialGradient(cx2,cy,0,cx2,cy,cr);cg.addColorStop(0,'rgba(16,185,129,'+(0.25*Math.min(1,(p-0.25)/0.15))+')');cg.addColorStop(0.5,'rgba(16,185,129,'+(0.12*(p-0.25))+')');cg.addColorStop(1,'transparent');
+    ctx.fillStyle=cg;ctx.beginPath();ctx.arc(cx2,cy,cr,0,Math.PI*2);ctx.fill();
+    if(p>0.4){var cg2=ctx.createRadialGradient(cx2-cr*0.2,cy-cr*0.2,0,cx2-cr*0.2,cy-cr*0.2,cr*0.5);cg2.addColorStop(0,'rgba(255,107,53,'+(0.08*(p-0.4))+')');cg2.addColorStop(1,'transparent');ctx.fillStyle=cg2;ctx.beginPath();ctx.arc(cx2-cr*0.2,cy-cr*0.2,cr*0.5,0,Math.PI*2);ctx.fill();}
+    // 绿叶点
+    if(p>0.35){var lc=Math.floor(p*20);for(var i=0;i<lc;i++){var a=i*2.1+t*0.0002,d=cr*(0.2+(i%4)*0.2);var lx=cx2+Math.cos(a)*d,ly=cy+Math.sin(a)*d*0.6,ls=1.5+p*2;ctx.fillStyle='rgba(16,185,129,'+(0.3+(i%3)*0.1)+')';ctx.beginPath();ctx.arc(lx,ly,ls,0,Math.PI*2);ctx.fill();}}
+    // 开花(70%+)
+    if(p>0.65){var bl=(p-0.65)/0.35;var fc=Math.floor(3+bl*4);for(var i=0;i<fc;i++){var fa=i*1.5+0.5+t*0.0003,fd=cr*(0.3+(i%3)*0.25);var fx=cx2+Math.cos(fa)*fd,fy=cy+Math.sin(fa)*fd*0.5-5,fs=2+bl*3;for(var j=0;j<5;j++){var pa=j*Math.PI*2/5+t*0.0004;ctx.fillStyle='rgba(255,107,53,'+(0.3*bl)+')';ctx.beginPath();ctx.ellipse(fx+Math.cos(pa)*fs*0.3,fy+Math.sin(pa)*fs*0.3,fs*0.25,fs*0.4,pa,0,Math.PI*2);ctx.fill();}ctx.fillStyle='rgba(245,158,11,'+(0.5*bl)+')';ctx.beginPath();ctx.arc(fx,fy,fs*0.1,0,Math.PI*2);ctx.fill();}}
   }
 }
 
-function drawBranch(cx,cy,ang,len,tk,depth,maxD,pct,t,wind){
-  if(depth>maxD||pct<depth*15||len<5)return;
-  var sway=wind*(1-depth*0.15),ex=cx+Math.cos(ang+sway*0.03)*len,ey=cy+Math.sin(ang+sway*0.03)*len;
-  ctx.beginPath();ctx.moveTo(cx,cy);
-  ctx.quadraticCurveTo(cx+Math.cos(ang+sway*0.02)*len*0.5,cy+Math.sin(ang+sway*0.02)*len*0.5-2,ex,ey);
-  ctx.strokeStyle='#6a4a2a';ctx.lineWidth=Math.max(0.5,tk);ctx.lineCap='round';ctx.stroke();
-  var children=Math.min(2,Math.floor(pct/30));
-  for(var i=0;i<children;i++){var na=ang+(i===0?0.4:-0.4)+(Math.random()-0.5)*0.2,nl=len*(0.6+Math.random()*0.2),nt=Math.max(0.5,tk*(0.5+Math.random()*0.2));drawBranch(ex,ey,na,nl,nt,depth+1,maxD,pct,t,wind);}
+// ===== 浇水粒子 =====
+var WD=[];
+function drawWater(pct,t){
+  var p=Math.min(1,pct/100);if(p<0.15||p>=0.95){WD=[];return;}
+  if(Math.random()<0.15+p*0.1){WD.push({x:Math.random()*canvas.width,y:-5-Math.random()*10,vx:(Math.random()-0.5)*0.3,vy:1+Math.random()*1.5,size:1.5+Math.random()*2,hue:Math.random()>0.5?'#FF6B35':'#10B981'});}
+  var gndY=canvas.height*0.82,k=[];
+  for(var i=0;i<WD.length;i++){var d=WD[i];d.x+=d.vx;d.y+=d.vy;d.vy+=0.05;if(d.y>gndY-30)continue;
+    ctx.fillStyle=d.hue;ctx.globalAlpha=0.7;ctx.beginPath();ctx.arc(d.x,d.y,d.size,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=0.15;ctx.beginPath();ctx.arc(d.x-d.vx*3,d.y-d.vy*3,d.size*0.5,0,Math.PI*2);ctx.fill();k.push(d);}
+  WD=k;ctx.globalAlpha=1;
 }
 
-function drawCanopy(pct,t,wind){
-  if(pct<15)return;
-  var sp=Math.min(1,pct/100),gndY=H*0.78,maxH=H*0.35,cx=W/2,topY=gndY-maxH*sp,spread=sp*120,cy=topY-30*sp;
-  var grd=ctx.createRadialGradient(cx+wind,cy,0,cx+wind,cy,spread);
-  grd.addColorStop(0,'rgba(80,160,60,'+(0.2*sp)+')');grd.addColorStop(0.5,'rgba(60,140,50,'+(0.15*sp)+')');grd.addColorStop(1,'transparent');
-  ctx.fillStyle=grd;ctx.beginPath();ctx.arc(cx+wind,cy,spread,0,Math.PI*2);ctx.fill();
-  for(var i=0;i<leafParticles.length;i++){
-    var lp=leafParticles[i],dist=lp.baseDist*sp,angle=lp.baseAngle+Math.sin(t*0.001*lp.swaySpeed+lp.swayPhase)*lp.swayAmp*0.02;
-    var lx=cx+Math.cos(angle)*dist+wind*0.5,ly=cy+Math.sin(angle)*dist*0.6-10;
-    if(ly>gndY-20)continue;
-    var alpha=lp.alpha*Math.min(1,(sp-0.15)/0.2)*sp;if(alpha<0.01)continue;
-    ctx.save();ctx.translate(lx,ly);ctx.rotate(lp.rotation+t*0.001*lp.rotSpeed);ctx.globalAlpha=alpha;
-    ctx.beginPath();ctx.ellipse(0,0,lp.size*0.5,lp.size*0.7,0,0,Math.PI*2);ctx.fillStyle='hsl('+lp.hue+','+lp.sat+'%,'+lp.light+'%)';ctx.fill();ctx.restore();
-  }
-  if(sp>0.5){var ha=(sp-0.5)*0.15;var hl=ctx.createRadialGradient(cx+wind-spread*0.2,cy-spread*0.3,0,cx+wind-spread*0.2,cy-spread*0.3,spread*0.4);hl.addColorStop(0,'rgba(255,255,200,'+ha+')');hl.addColorStop(1,'transparent');ctx.fillStyle=hl;ctx.beginPath();ctx.arc(cx+wind-spread*0.2,cy-spread*0.3,spread*0.4,0,Math.PI*2);ctx.fill();}
+function drawTxt(pct,msg){
+  if(pct<=0)return;var p=Math.min(1,pct/100),gndY=canvas.height*0.82;
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.font='11px -apple-system,PingFang SC,sans-serif';ctx.fillText(msg||'培育中...',canvas.width*0.5,gndY+20);
+  if(pct<100){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(canvas.width*0.5-40,gndY+34,80,2);ctx.fillStyle='#10B981';ctx.fillRect(canvas.width*0.5-40,gndY+34,80*p,2);}
+  else{ctx.fillStyle='#10B981';ctx.font='13px -apple-system,PingFang SC,sans-serif';ctx.fillText('即将进入系统...',canvas.width*0.5,gndY+20);}
 }
 
-function drawFlowers(pct,t,wind){
-  if(pct<50)return;
-  var bp=Math.max(0,Math.min(1,(pct-50)/30)); // 0→1 在50%-80%之间平滑绽放
-  var sp=Math.min(1,pct/100),gndY=H*0.78,maxH=H*0.35,cx=W/2,topY=gndY-maxH*sp,cy=topY-30*sp,spread=sp*120;
-  var fpos=[{a:0.8,d:0.6,s:1},{a:-0.6,d:0.7,s:0.9},{a:1.5,d:0.4,s:0.7},{a:-1.2,d:0.5,s:0.8},{a:0.3,d:0.3,s:0.6}];
-  for(var i=0;i<fpos.length;i++){
-    var f=fpos[i],fx=cx+Math.cos(f.a+wind*0.02)*spread*f.d,fy=cy+Math.sin(f.a)*spread*f.d*0.4-5,fs=4+bp*f.s*10,alpha=bp*f.s;
-    for(var j=0;j<5;j++){var pa=j*Math.PI*2/5+t*0.0005;ctx.beginPath();ctx.ellipse(fx+Math.cos(pa)*fs*0.5,fy+Math.sin(pa)*fs*0.5,fs*0.4,fs*0.6,pa,0,Math.PI*2);ctx.fillStyle='rgba(255,220,200,'+(alpha*0.8)+')';ctx.fill();}
-    ctx.beginPath();ctx.arc(fx,fy,fs*0.15,0,Math.PI*2);ctx.fillStyle='rgba(255,200,50,'+(alpha*0.9)+')';ctx.fill();
-  }
+function drawIntroP(t){
+  for(var i=0;i<particles.length;i++){var p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=Math.sin(t*0.001+p.phase)*0.002;
+    if(p.y<-10){p.y=canvas.height+10;p.x=Math.random()*canvas.width;}if(p.x<-10||p.x>canvas.width+10)p.vx*=-1;
+    var pa=p.alpha*Math.min(1,(t/1000)/2);ctx.globalAlpha=pa;ctx.fillStyle='hsl('+p.hue+',80%,70%)';ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+    ctx.shadowColor='hsl('+p.hue+',80%,70%)';ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;}
+  ctx.globalAlpha=1;
 }
 
-function drawAtmo(pct,t){
-  var sp=Math.min(1,pct/100);
-  if(MODE==='intro'||MODE==='idle'){
-    for(var i=0;i<particles.length;i++){
-      var p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=Math.sin(t*0.001+p.phase)*0.002;
-      if(p.y<-10){p.y=H+10;p.x=Math.random()*W;}if(p.x<-10||p.x>W+10)p.vx*=-1;
-      var pa=p.alpha*Math.min(1,introElapsed/2);ctx.globalAlpha=pa;ctx.fillStyle='hsl('+p.hue+',80%,70%)';ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
-      ctx.shadowColor='hsl('+p.hue+',80%,70%)';ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;
-    }
-    ctx.globalAlpha=1;
-  }
-  if(MODE==='healing'&&sp>0.1){
-    for(var i=0;i<fireflies.length;i++){var f=fireflies[i];f.x+=f.vx;f.y+=f.vy;if(f.y<-20||f.y>H*0.7){f.y=H*0.1+Math.random()*H*0.3;f.x=Math.random()*W;}if(f.x<-20||f.x>W+20)f.vx*=-1;f.alpha=Math.sin(t*0.001*f.flickerSpeed+f.phase)*0.3+0.3;var glow=Math.sin(t*0.001*f.flickerSpeed+f.phase)*2+3;ctx.fillStyle='rgba(255,230,150,'+(f.alpha*sp)+')';ctx.shadowColor='rgba(255,200,100,0.5)';ctx.shadowBlur=glow;ctx.beginPath();ctx.arc(f.x,f.y,f.size,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
-  }
-  if(MODE==='healing'&&sp>0.5){var pa=(sp-0.5)*2;for(var i=0;i<petals.length;i++){var pt=petals[i];pt.x+=pt.vx;pt.y+=pt.vy;pt.rotation+=pt.rotSpeed;pt.vy+=0.001;if(pt.y>H*0.85||pt.x<-20||pt.x>W+20){pt.x=Math.random()*W;pt.y=-10;pt.vx=(Math.random()-0.5)*0.5;pt.vy=0.2+Math.random()*0.3;}pt.alpha=pa*0.3;ctx.save();ctx.translate(pt.x,pt.y);ctx.rotate(pt.rotation);ctx.globalAlpha=pt.alpha*sp;ctx.fillStyle='rgba(255,200,180,0.6)';ctx.beginPath();ctx.ellipse(0,0,pt.size,pt.size*0.5,0,0,Math.PI*2);ctx.fill();ctx.restore();}}
-  if(MODE==='complete'){for(var i=0;i<8;i++){var cw=2+Math.sin(t*0.002+i)*2,crx=W/2+(Math.random()-0.5)*40;ctx.fillStyle='rgba(255,255,200,'+(0.03+Math.sin(t*0.001+i)*0.02)+')';ctx.fillRect(crx-0.5,H*0.3,cw,Math.random()*H*0.4+H*0.1);}}
-}
+var COMPLETE_TIME=0;
 
-function drawProgressText(progress,msg){
-  if(progress<=0||MODE!=='healing')return;
-  var sp=Math.min(1,progress/100),gndY=H*0.78;
-  ctx.fillStyle='rgba(255,255,255,'+(0.5+0.3*sp)+')';ctx.font='12px -apple-system,PingFang SC,sans-serif';ctx.textAlign='center';ctx.fillText(msg||'培育中…',W/2,gndY+30);
-  if(progress<100){var bw=120,bh=2;ctx.fillStyle='rgba(255,255,255,0.1)';ctx.fillRect(W/2-bw/2,gndY+38,bw,bh);ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillRect(W/2-bw/2,gndY+38,bw*progress/100,bh);}
-  else{ctx.fillStyle='rgba(80,200,120,0.8)';ctx.font='15px -apple-system,PingFang SC,sans-serif';ctx.fillText('🌳 培育完成！',W/2,gndY+30);ctx.fillText('正在进入系统…',W/2,gndY+52);}
-}
-
-// ===== 主循环 =====
 function render(t){
   POLY=t*0.001;
-  var rawPct=healProgress;
-  var sp=smoothPct(rawPct); // 平滑曲线后的进度值
-  // 统一风向偏移（整棵树共用同一个 windAngle）
-  var windAngle=Math.sin(t*0.0008)*1.5;
-
-  drawSky(sp,t);
-  if((MODE==='healing'||MODE==='complete')&&rawPct>0){
-    drawGround(rawPct,windAngle);
-    drawTrunk(sp,t,windAngle);
-    drawBranches(sp,t,windAngle);
-    drawCanopy(sp,t,windAngle);
-    drawFlowers(healProgress,t,windAngle);
-  }
-  drawAtmo(sp,t);
-  if(MODE==='healing')drawProgressText(rawPct,healMessage);
-
-  if(MODE==='intro'||MODE==='idle'){
-    introElapsed=t/1000;
-    if(introElapsed>5&&!cardShown){cardShown=true;document.getElementById('mainCard').classList.add('show');setTimeout(function(){var el=document.getElementById('brandTitle');if(el)el.classList.add('glow');},1200);urlPromise=fetchTunnelUrl();}
-    if(introElapsed>12){var ft=(introElapsed-12)/0.8;if(ft>=1){canvas.style.display='none';document.body.style.background='#f5f2ed';document.body.style.overflow='auto';document.body.style.minHeight='100vh';MODE='idle';return;}canvas.style.opacity=1-ft;}
-  }
+  if(!initCanvasSafe()){requestAnimationFrame(render);return;}
+  var raw=healProgress,sp=smoothPct(raw)*100;
+  drawBg(sp,t);drawTree(sp,t);drawWater(sp,t);
+  if(MODE==='healing')drawTxt(raw,healMessage);
+  if(MODE==='complete'){COMPLETE_TIME||(COMPLETE_TIME=t);var cp=Math.min(1,(t-COMPLETE_TIME)/1000);if(cp>0){for(var i=0;i<6;i++){var cw=1+Math.sin(t*0.002+i)*2,crx=canvas.width*0.5+(Math.random()-0.5)*50;ctx.fillStyle='rgba(255,200,100,'+(0.03+Math.sin(t*0.001+i)*0.02)*cp+')';ctx.fillRect(crx-0.5,canvas.height*0.05,cw,canvas.height*0.3+Math.random()*canvas.height*0.2);}}}
+  if(MODE==='intro'||MODE==='idle'){drawIntroP(t);var ie=t/1000;if(ie>5&&!cardShown){cardShown=true;document.getElementById('mainCard').classList.add('show');setTimeout(function(){var el=document.getElementById('brandTitle');if(el)el.classList.add('glow');},1200);urlPromise=fetchTunnelUrl();}if(ie>12){var ft=(ie-12)/0.8;if(ft>=1){canvas.style.display='none';document.body.style.background='#f5f2ed';document.body.style.overflow='auto';document.body.style.minHeight='100vh';MODE='idle';return;}canvas.style.opacity=1-ft;}}
   requestAnimationFrame(render);
 }
 
@@ -292,7 +220,7 @@ function fetchTunnelUrl(){return fetch(URL_JSON+'?t='+Date.now()).then(function(
 
 btn.addEventListener('click',function(e){
   e.preventDefault();
-  btn.textContent='🌱 准备种树…';
+  btn.textContent='🌱 准备种树...';
   btn.style.pointerEvents='none';
   MODE='healing';
   canvas.style.display='block';canvas.style.opacity=1;
@@ -308,21 +236,21 @@ btn.addEventListener('click',function(e){
   (urlPromise||fetchTunnelUrl()).then(function(url){
     if(url){target=url+'/gateway/';baseUrl=url;btn.setAttribute('href',target);}
     else{target=btn.getAttribute('href')||target;baseUrl=target.replace('/gateway/','');}
-    healProgress=5;healMessage='正在培育种子…';doHeal();
+    healProgress=5;healMessage='正在培育种子...';doHeal();
   }).catch(function(){
     target=btn.getAttribute('href')||target;baseUrl=target.replace('/gateway/','');doHeal();
   });
 });
 
-// ===== 验证锁：永不跳404 =====
-// 核心原则：验证通过才跳转，不通过就保持树动画循环，永远不跳到404
+// ===== 验证锁:永不跳404 =====
+// 核心原则:验证通过才跳转,不通过就保持树动画循环,永远不跳到404
 var VERIFY_URL = '';        // 当前要验证的目标URL
 var VERIFY_RETRIES = 0;     // 验证重试次数
-var VERIFY_MAX_INFINITE = true; // 无限重试，永不放弃
+var VERIFY_MAX_INFINITE = true; // 无限重试,永不放弃
 
 function doHeal(){
-  healProgress=3;healMessage='🌱 种子入土…';
-  // 尝试自愈API（快速通道）
+  healProgress=3;healMessage='🌱 种子入土...';
+  // 尝试自愈API(快速通道)
   fetch(baseUrl+'/api/heal',{method:'POST',signal:AbortSignal.timeout(8000)})
     .then(function(r){return r.json().catch(function(){return {};});})
     .then(function(d){
@@ -336,7 +264,7 @@ function doHeal(){
     .catch(function(){setTimeout(startAutoProgress,1000);});
 }
 
-// ===== 修复进度轮询（后端API → 树长高） =====
+// ===== 修复进度轮询(后端API > 树长高) =====
 function startRepairLoop(){
   if(healProgress>=95){startVerifyGate();return;}
   fetch(baseUrl+'/api/heal-status?t='+Date.now(),{signal:AbortSignal.timeout(5000)})
@@ -344,7 +272,7 @@ function startRepairLoop(){
     .then(function(d){
       if(d&&typeof d.progress==='number'&&d.progress>0){
         healProgress=Math.max(healProgress,Math.min(d.progress,94));
-        healMessage=d.message||'修复中…';
+        healMessage=d.message||'修复中...';
         if(d.progress>=100){healProgress=95;startVerifyGate();return;}
         setTimeout(startRepairLoop,1500);
       }else{
@@ -354,17 +282,17 @@ function startRepairLoop(){
     .catch(function(){setTimeout(startAutoProgress,0);});
 }
 
-// ===== 自动进度（后端不可达时的降级） =====
+// ===== 自动进度(后端不可达时的降级) =====
 var AUTO_STEP=0;
 function startAutoProgress(){
   AUTO_STEP++;
   healProgress=Math.min(80,5+AUTO_STEP*12);
-  var msgs=['正在定位隧道…','发现公网地址','正在验证连接…','更新入口配置…','推送CDN更新…'];
-  healMessage=msgs[Math.min(AUTO_STEP-1,msgs.length-1)]||'修复中…';
+  var msgs=['正在定位隧道...','发现公网地址','正在验证连接...','更新入口配置...','推送CDN更新...'];
+  healMessage=msgs[Math.min(AUTO_STEP-1,msgs.length-1)]||'修复中...';
   if(AUTO_STEP<7){
     setTimeout(startAutoProgress,2500);
   }else{
-    healProgress=85;healMessage='等待CDN生效…';
+    healProgress=85;healMessage='等待CDN生效...';
     setTimeout(startAutoProgress2,3000);
   }
 }
@@ -379,7 +307,7 @@ function startAutoProgress2(){
   }
 }
 
-// ===== 验证门禁（核心！不通过不跳转） =====
+// ===== 验证门禁(核心!不通过不跳转) =====
 function fetchHealth(url){
   return fetch(url+'/api/health',{method:'GET',mode:'cors',signal:AbortSignal.timeout(8000)})
     .then(function(r){
@@ -392,10 +320,10 @@ function fetchHealth(url){
     });
 }
 
-// ===== 验证门禁 v2（用/api/health + CORS真实读状态码） =====
+// ===== 验证门禁 v2(用/api/health + CORS真实读状态码) =====
 function startVerifyGate(){
   VERIFY_RETRIES=0;
-  healProgress=92;healMessage='🔄 获取最新公网地址…';
+  healProgress=92;healMessage='🔄 获取最新公网地址...';
   doVerifyGate();
 }
 
@@ -413,22 +341,22 @@ function doVerifyGate(){
       setTimeout(startVerifyGate,Math.min(30000,3000+VERIFY_RETRIES*2000));
       return;
     }
-    // Step 2: 用/api/health验证（CORS模式，能读真实状态码和响应体）
-    healProgress=94;healMessage='🔍 验证1/1：网关连通性…';
+    // Step 2: 用/api/health验证(CORS模式,能读真实状态码和响应体)
+    healProgress=94;healMessage='🔍 验证1/1:网关连通性...';
     fetchHealth(baseUrl).then(function(){
-      healProgress=98;healMessage='✅ 验证通过！';
+      healProgress=98;healMessage='✅ 验证通过!';
       MODE='complete';
       doFinalConfirm();
     }).catch(function(){
-      // 真正的网络不通或状态码不对 → 保持动画继续重试
-      healProgress=85;healMessage='🌱 通道检测中，继续培育…';
+      // 真正的网络不通或状态码不对 > 保持动画继续重试
+      healProgress=85;healMessage='🌱 通道检测中,继续培育...';
       VERIFY_RETRIES++;
       var delay=Math.min(30000,3000+VERIFY_RETRIES*VERIFY_RETRIES*2000);
       setTimeout(startVerifyGate,delay);
     });
   }).catch(function(){
-    // url.json读不到，重试
-    healProgress=90;healMessage='⏳ 读取入口配置…';
+    // url.json读不到,重试
+    healProgress=90;healMessage='⏳ 读取入口配置...';
     VERIFY_RETRIES++;
     setTimeout(startVerifyGate,5000);
   });
@@ -437,22 +365,23 @@ function doVerifyGate(){
 function doFinalConfirm(){
   var finalUrl=target||(baseUrl?baseUrl+'/gateway/':'');
   if(!finalUrl||finalUrl===''){
-    healProgress=85;healMessage='⚠️ 重新获取地址…';
+    healProgress=85;healMessage='⚠️ 重新获取地址...';
     MODE='healing';
     setTimeout(startVerifyGate,5000);
     return;
   }
-  // 最后一次快速验证（用/api/health确认网关仍在运行）
+  // 最后一次快速验证(用/api/health确认网关仍在运行)
   fetchHealth(baseUrl).then(function(){
-    healProgress=100;healMessage='✅ 准备就绪！';
+    healProgress=100;healMessage='✅ 准备就绪!';
     setTimeout(function(){window.location.href=finalUrl;},1500);
   }).catch(function(){
-    healProgress=85;healMessage='🌱 重新扎根…';
+    healProgress=85;healMessage='🌱 重新扎根...';
     MODE='healing';
     VERIFY_RETRIES++;
     setTimeout(startVerifyGate,5000);
   });
 }
+
 
 // GO!
 requestAnimationFrame(render);
