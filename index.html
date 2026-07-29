@@ -8,7 +8,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="v5-nonanimation-20260729">
+<meta name="version" content="v5-progress-20260729">
 <link rel="manifest" href="/lebacenter/manifest.json">
 <title>乐吧公益中心</title>
 <style>
@@ -76,7 +76,21 @@ body{
 .pwa-btn{background:none;border:none;font-size:12px;color:#86868b;cursor:pointer;padding:6px 14px;border-radius:8px;transition:all 0.3s}
 .pwa-btn:hover{background:rgba(0,0,0,0.04);color:#4785a8}
 .pwa-btn.installed{color:#34c759;cursor:default}
-.btn-err{color:#e74c3c;font-size:12px;margin-top:10px;min-height:18px;animation:fadeUp 0.3s ease-out}
+/* 🔄 连接进度条 - 小字+百分比+动画 */
+.progress-area{min-height:44px;margin-top:10px;opacity:0;transition:opacity 0.3s;display:none}
+.progress-area.show{display:block;opacity:1}
+.progress-text{font-size:12px;color:#8e8e93;margin-bottom:6px;transition:color 0.3s}
+.progress-text.done{color:#34c759}
+.progress-bar{border-radius:4px;height:3px;background:rgba(0,0,0,0.06);overflow:hidden;margin:0 auto;width:180px}
+.progress-fill{height:100%;width:0%;border-radius:4px;
+  background:linear-gradient(90deg,#4785a8,#6da8a0,#8fc1b5);
+  background-size:200% 100%;
+  transition:width 0.4s cubic-bezier(0.25,0.1,0.25,1);
+  animation:gradShift 1.5s linear infinite}
+.progress-fill.complete{background:linear-gradient(90deg,#34c759,#30d158);animation:none}
+@keyframes gradShift{to{background-position:200% 0}}
+.btn-err{color:#e74c3c;font-size:12px;margin-top:8px;min-height:18px;display:none}
+.btn-err.show{display:block;animation:fadeUp 0.3s ease-out}
 </style>
 </head>
 <body>
@@ -89,6 +103,12 @@ body{
   <div class="enter-area">
     <a class="enter-btn" id="enterBtn">进入系统</a>
     <div class="bookmark-tip">📌 收藏此页面，随时回来</div>
+    <!-- 🔄 连接进度区域 -->
+    <div class="progress-area" id="progressArea">
+      <div class="progress-text" id="progressText">⏳ 正在连接...</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressPct" style="margin-top:4px;font-size:11px;color:#aeaeb2"></div>
+    </div>
     <div class="btn-err" id="btnErr"></div>
     <div class="pwa-area" id="pwaArea">
       <button class="pwa-btn" id="pwaBtn" onclick="installPWA()">📲 安装到主屏幕</button>
@@ -101,34 +121,63 @@ body{
 var URL_JSON = '/lebacenter/url.json';
 var btn = document.getElementById('enterBtn');
 var errEl = document.getElementById('btnErr');
+var progArea = document.getElementById('progressArea');
+var progText = document.getElementById('progressText');
+var progFill = document.getElementById('progressFill');
+var progPct = document.getElementById('progressPct');
+
+function setProgress(pct, msg){
+  progArea.style.display = 'block';
+  setTimeout(function(){progArea.classList.add('show');}, 10);
+  progFill.style.width = pct + '%';
+  progPct.textContent = pct + '%';
+  if(msg) progText.textContent = msg;
+}
 
 function fetchTunnelUrl(){
+  setProgress(10, '⏳ 获取入口配置...');
   return fetch(URL_JSON+'?t='+Date.now())
-    .then(function(r){return r.json();})
-    .then(function(d){return d.url||'';});
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      setProgress(40, '📡 解析地址...');
+      return r.json();
+    })
+    .then(function(d){
+      if(!d || !d.url || d.url.length<5) throw new Error('无效地址');
+      setProgress(60, '🔄 准备跳转...');
+      return d.url;
+    });
 }
 
 btn.addEventListener('click', function(e){
   e.preventDefault();
-  btn.textContent = '⏳ 正在连接...';
+  btn.textContent = '⏳ 连接中...';
   btn.classList.add('loading');
+  errEl.classList.remove('show');
   errEl.textContent = '';
+
   var ctrl = new AbortController();
   setTimeout(function(){ctrl.abort();}, 10000);
+
   fetchTunnelUrl()
     .then(function(url){
-      if(!url || url.length<5){
-        throw new Error('未获取到有效地址');
-      }
       var gateway = url+'/gateway/';
-      btn.textContent = '🔄 跳转中...';
-      // 直接跳转,由浏览器处理连接失败的情况
-      window.location.href = gateway;
+      setProgress(80, '🚀 即将进入系统...');
+      setTimeout(function(){
+        setProgress(100, '✅ 连接成功');
+        progFill.classList.add('complete');
+        progText.classList.add('done');
+        progPct.textContent = '100%';
+        setTimeout(function(){ window.location.href = gateway; }, 500);
+      }, 300);
     })
     .catch(function(err){
       btn.textContent = '进入系统';
       btn.classList.remove('loading');
+      progArea.style.display = 'none';
+      progArea.classList.remove('show');
       errEl.textContent = '⚠️ 系统暂时不可达，请稍后再试';
+      errEl.classList.add('show');
       console.error('入口跳转失败:', err);
     });
 });
