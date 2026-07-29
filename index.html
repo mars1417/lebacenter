@@ -8,169 +8,45 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<!-- CDN: PURGE -->
 <link rel="manifest" href="/lebacenter/manifest.json">
 <title>乐吧公益中心</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{overflow:hidden;width:100%;height:100%;}
-body{
-  background:#1a1828;
-  display:flex;align-items:center;justify-content:center;
-  font-family:"PingFang SC","Microsoft YaHei",sans-serif;
-  padding:20px;text-align:center;
-}
-/* ===== 开场粒子Canvas ===== */
-#introCanvas{
-  position:fixed;top:0;left:0;width:100vw;height:100vh;
-  z-index:1;pointer-events:none;
-}
-/* ===== 卡片置于Canvas之上 ===== */
-.card{
-  background:rgba(248,244,238,0.88);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
-  border-radius:28px;padding:50px 40px 36px;max-width:460px;width:100%;
-  box-shadow:0 24px 80px rgba(0,0,0,0.06),0 0 0 1px rgba(255,255,255,0.8);
-  opacity:0;transform:scale(0.95);
-  position:relative;overflow:hidden;transition:none;
-  pointer-events:none;z-index:2;
-}
-.card.show{
-  animation:cardIn 1.2s cubic-bezier(0.15,0.85,0.35,1) forwards;
-  pointer-events:auto;
-}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#4785a8,#6da8a0,#8fc1b5,#6da8a0,#4785a8);
-  background-size:200% 100%;animation:waveShift 4s ease-in-out infinite;}
-@keyframes waveShift{0%,100%{background-position:0% 0;}50%{background-position:100% 0;}}
-@keyframes cardIn{from{opacity:0;transform:scale(0.92) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
-/* 白玻徽章 */
-.badge-wrap{position:relative;width:80px;height:80px;margin:0 auto 8px;perspective:800px;}
-.badge-glass{width:80px;height:80px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,0.95) 0%,rgba(230,240,255,0.6) 40%,rgba(200,215,240,0.3) 70%,rgba(180,200,230,0.15) 100%);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  border:1.5px solid rgba(255,255,255,0.8);
-  box-shadow:0 8px 32px rgba(71,133,168,0.12),inset 0 1px 0 rgba(255,255,255,0.9),inset 0 -1px 0 rgba(0,0,0,0.04);
-  display:flex;align-items:center;justify-content:center;
-  transform:rotateX(6deg) rotateY(-8deg);
-  transition:transform 0.4s cubic-bezier(0.25,0.1,0.25,1);
-  animation:badgeFloat 5s ease-in-out infinite 0.5s;overflow:hidden;}
-.badge-logo{width:65%;height:65%;object-fit:contain;border-radius:50%;transform:translateZ(4px);}
-.badge-glass::before{content:'';position:absolute;inset:0;border-radius:50%;
-  background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.5) 30%,transparent 60%,rgba(255,255,255,0.2) 80%,transparent 100%);
-  animation:badgeShimmer 4s ease-in-out infinite 0.8s;z-index:1;}
-.badge-glass::after{content:'';position:absolute;inset:-2px;border-radius:50%;
-      background:conic-gradient(from 0deg,transparent,rgba(71,133,168,0.2),rgba(196,149,106,0.15),rgba(71,133,168,0.2),transparent);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;padding:2px;
-  animation:badgeSpin 6s linear infinite;}
-.badge-shadow{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
-  width:60px;height:12px;border-radius:50%;
-  background:radial-gradient(ellipse,rgba(0,0,0,0.06),transparent);
-  animation:shadowPulse 5s ease-in-out infinite 0.5s;}
-@keyframes badgeFloat{0%,100%{transform:rotateX(6deg) rotateY(-8deg) translateY(0);}50%{transform:rotateX(6deg) rotateY(-8deg) translateY(-4px);}}
-@keyframes shadowPulse{0%,100%{transform:translateX(-50%) scale(1);opacity:1;}50%{transform:translateX(-50%) scale(0.85);opacity:0.6;}}
-@keyframes badgeShimmer{0%,100%{transform:rotate(0deg);opacity:0.5;}50%{transform:rotate(180deg);opacity:1;}}
-@keyframes badgeSpin{to{transform:rotate(360deg);}}
-/* 品牌文字 - 七彩渐变 */
-.brand-title{font-size:clamp(30px,7.5vw,48px);font-weight:800;line-height:1.2;margin:4px 0 6px;white-space:nowrap;
-  background:linear-gradient(135deg,#4785a8,#c4956a);
-  background-size:200% 100%;background-position:100% 0;
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  opacity:0;transform:translateY(10px) scale(0.96);
-  animation:brandReveal 0.8s cubic-bezier(0.25,0.1,0.25,1) 0.3s forwards;}
-@keyframes brandReveal{
-  0%{opacity:0;transform:translateY(10px) scale(0.96);background-position:100% 0;}
-  60%{opacity:1;transform:translateY(0) scale(1);background-position:60% 0;}
-  100%{opacity:1;transform:translateY(0) scale(1);background-position:0% 0;}}
-.brand-title.glow{animation:brandGlow 3s ease-in-out infinite 1.5s,brandReveal 0.8s cubic-bezier(0.25,0.1,0.25,1) 0.3s forwards;}
-@keyframes brandGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(71,133,168,0.10));}50%{filter:drop-shadow(0 0 14px rgba(196,149,106,0.20));}}
-.sub-text{color:#86868b;font-size:14px;margin:4px 0 14px;opacity:0;transform:translateY(6px);
-  animation:fadeUp 0.5s cubic-bezier(0.25,0.1,0.25,1) 0.6s forwards;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-.enter-area{opacity:0;transform:translateY(8px);
-  animation:fadeUp 0.5s cubic-bezier(0.25,0.1,0.25,1) 0.9s forwards;margin-top:4px;}
-.enter-btn{display:inline-flex;align-items:center;gap:6px;
-  padding:13px 34px;border-radius:999px;font-size:15px;font-weight:600;
-  background:rgba(71,133,168,0.1);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border:1px solid rgba(71,133,168,0.2);color:#4785a8;cursor:pointer;text-decoration:none;
-  box-shadow:0 2px 12px rgba(71,133,168,0.08),inset 0 1px 0 rgba(255,255,255,0.9);
-  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);user-select:none;position:relative;overflow:hidden;}
-.enter-btn::before{content:'';position:absolute;inset:-2px;border-radius:999px;
-  background:conic-gradient(from 0deg,transparent,rgba(71,133,168,0.15),rgba(196,149,106,0.1),rgba(71,133,168,0.15),transparent);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;padding:2px;
-  animation:btnSpin 4s linear infinite;}
-@keyframes btnSpin{to{transform:rotate(360deg);}}
-.enter-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(71,133,168,0.18);}
-.enter-btn:active{transform:scale(0.96);}
-.bookmark-tip{color:#aeaeb2;font-size:11px;margin-top:8px;opacity:0;animation:fadeUp 0.4s ease-out 1.1s forwards;}
-/* 小树修复 & Portal过渡（保留） */
-.heal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;
-  background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(0,122,255,0.08) 0%,transparent 60%),
-    radial-gradient(ellipse 50% 30% at 80% 80%,rgba(175,82,222,0.06) 0%,transparent 50%),
-    linear-gradient(135deg,#f0f2f5,#e4e8ee);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  animation:healFadeIn 0.4s ease-out;}
-@keyframes healFadeIn{from{opacity:0;}to{opacity:1;}}
-.heal-card{background:rgba(255,255,255,0.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border-radius:32px;padding:40px 44px 36px;max-width:380px;width:90%;
-  box-shadow:0 24px 80px rgba(0,0,0,0.10),0 0 0 1px rgba(255,255,255,0.8);
-  animation:healPop 0.5s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden;}
-.heal-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#4785a8,#6da8a0,#4785a8);background-size:200% 100%;animation:waveShift 2s ease-in-out infinite;}
-@keyframes healPop{from{opacity:0;transform:scale(0.9) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
-.tree-scene{position:relative;width:120px;height:140px;margin:0 auto 18px;}
-.ground{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100px;height:8px;background:linear-gradient(90deg,#8B6914,#A0822A,#8B6914);border-radius:4px;}
-.ground::after{content:'';position:absolute;top:-3px;left:10px;right:10px;height:6px;background:linear-gradient(90deg,#5a8f4c,#7cb362,#5a8f4c);border-radius:3px;animation:grassWave 2s ease-in-out infinite;}
-@keyframes grassWave{0%,100%{transform:scaleX(1);}50%{transform:scaleX(1.03);}}
-.trunk{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:6px;height:0;background:linear-gradient(180deg,#8B6914,#6B4F12);border-radius:3px;transform-origin:bottom center;animation:treeGrow 1.5s ease-out forwards;}
-.healing .trunk{animation:treeSway 3s ease-in-out infinite;}
-@keyframes treeSway{0%,100%{transform:translateX(-50%) rotate(0deg);}50%{transform:translateX(-50%) rotate(2deg);}}
-.healing .leaf{animation:leafGlow 2s ease-in-out infinite;}
-.healing .tree-scene::before{content:'';position:absolute;top:30px;left:50%;transform:translateX(-50%);width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(71,133,168,0.12),transparent);animation:auraPulse 2s ease-in-out infinite;pointer-events:none;}
-@keyframes auraPulse{0%,100%{transform:translateX(-50%) scale(0.8);opacity:0.5;}50%{transform:translateX(-50%) scale(1.2);opacity:1;}}
-.heal-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:4px;}
-.heal-sub{font-size:13px;color:#86868b;margin-bottom:12px;}
-.heal-progress{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px;}
-.heal-dot{width:8px;height:8px;border-radius:50%;background:#ddd;animation:dotPulse 1.2s ease-in-out infinite;}
-@keyframes dotPulse{0%,100%{background:#ddd;transform:scale(1);}50%{background:#4785a8;transform:scale(1.3);}}
-.heal-status{font-size:12px;color:#aeaeb2;margin-top:8px;min-height:18px;transition:color 0.3s;}
-.heal-status.ok{color:#34c759;}
-.heal-status.fail{color:#ff3b30;}
-.cine-layer{position:fixed;top:0;left:0;width:100%;height:100%;z-index:999998;pointer-events:none;overflow:hidden;opacity:0;transition:opacity 0.15s ease;}
-.cine-layer.show{opacity:1;}
-.cine-dark{position:absolute;inset:0;background:rgba(24,20,30,0.85);opacity:0;animation:cineDarkIn 0.3s ease-out forwards;}
-@keyframes cineDarkIn{from{opacity:0;}to{opacity:1;}}
-.cine-core{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:4px;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,1),rgba(196,149,106,0.5),rgba(71,133,168,0.3),transparent);
-  box-shadow:0 0 40px 20px rgba(196,149,106,0.2);animation:cineCore 0.5s cubic-bezier(0.25,0.1,0.25,1) forwards;}
-.cine-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;
-  border:2px solid rgba(255,255,255,0.6);animation:cineRing 0.7s cubic-bezier(0.25,0.1,0.25,1) 0.15s forwards;}
-.cine-particle{position:absolute;top:50%;left:50%;width:6px;height:6px;border-radius:50%;opacity:0;animation:partFly 0.8s cubic-bezier(0.25,0.1,0.25,1) 0.1s forwards;}
-.cine-wave{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:0;height:0;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(230,235,240,0.9) 30%,rgba(71,133,168,0.3) 60%,transparent 70%);animation:cineWave 0.6s cubic-bezier(0.25,0.1,0.25,1) 0.5s forwards;}
-.cine-label{position:absolute;top:calc(50% + 60px);left:50%;transform:translateX(-50%);font-size:14px;font-weight:500;color:#a0a0a8;letter-spacing:4px;opacity:0;animation:cineLabel 0.7s ease-out 0.8s forwards;}
-@keyframes cineLabel{from{opacity:0;transform:translateX(-50%) translateY(8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
-.maint-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;
-  background:rgba(0,0,0,0.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  display:flex;align-items:center;justify-content:center;animation:maintFadeIn 0.25s ease-out;}
-.maint-popup{background:rgba(255,255,255,0.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border-radius:28px;padding:36px 40px 28px;max-width:360px;width:90%;
-  text-align:center;animation:maintPop 0.4s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden;}
-.maint-icon{font-size:48px;margin-bottom:12px;}
-.maint-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:8px;}
-.maint-desc{font-size:14px;color:#666;line-height:1.6;margin-bottom:16px;}
-.maint-btn{background:rgba(71,133,168,0.1);border:none;border-radius:14px;padding:10px 32px;font-size:15px;font-weight:600;color:#4785a8;cursor:pointer;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);}
-.pwa-area{margin-top:14px;padding-top:14px;opacity:0;animation:fadeUp 0.5s ease-out 5s forwards;}
-.pwa-btn{background:none;border:none;font-size:12px;color:#86868b;cursor:pointer;padding:6px 14px;border-radius:8px;transition:all 0.3s;}
-.pwa-btn:hover{background:rgba(0,0,0,0.04);color:#4785a8;}
-.pwa-btn.installed{color:#34c759;cursor:default;}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{overflow:hidden;width:100%;height:100%;background:#121016}
+body{font-family:"PingFang SC","SF Pro Display","Microsoft YaHei",sans-serif;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;position:relative}
+canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;pointer-events:none}
+.card{background:rgba(248,244,238,0.88);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:28px;padding:50px 40px 36px;max-width:460px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,0.06),0 0 0 1px rgba(255,255,255,0.8);opacity:0;transform:scale(0.95);position:relative;overflow:hidden;transition:none;pointer-events:none;z-index:2}
+.card.show{animation:cardIn 1.2s cubic-bezier(0.15,0.85,0.35,1) forwards;pointer-events:auto}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#4785a8,#6da8a0,#8fc1b5,#6da8a0,#4785a8);background-size:200% 100%;animation:waveShift 4s ease-in-out infinite}
+@keyframes waveShift{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
+@keyframes cardIn{from{opacity:0;transform:scale(0.92) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.badge-wrap{position:relative;width:80px;height:80px;margin:0 auto 8px;perspective:800px}
+.badge-glass{width:80px;height:80px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,0.95) 0%,rgba(230,240,255,0.6) 40%,rgba(200,215,240,0.3) 70%,rgba(180,200,230,0.15) 100%);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.8);box-shadow:0 8px 32px rgba(71,133,168,0.12),inset 0 1px 0 rgba(255,255,255,0.9),inset 0 -1px 0 rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;transform:rotateX(6deg) rotateY(-8deg);transition:transform 0.4s cubic-bezier(0.25,0.1,0.25,1);animation:badgeFloat 5s ease-in-out infinite 0.5s;overflow:hidden}
+.badge-logo{width:65%;height:65%;object-fit:contain;border-radius:50%;transform:translateZ(4px)}
+.badge-glass::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.5) 30%,transparent 60%,rgba(255,255,255,0.2) 80%,transparent 100%);animation:badgeShimmer 4s ease-in-out infinite 0.8s;z-index:1}
+.badge-shadow{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:60px;height:12px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,0.06),transparent);animation:shadowPulse 5s ease-in-out infinite 0.5s}
+@keyframes badgeFloat{0%,100%{transform:rotateX(6deg) rotateY(-8deg) translateY(0)}50%{transform:rotateX(6deg) rotateY(-8deg) translateY(-4px)}}
+@keyframes shadowPulse{0%,100%{transform:translateX(-50%) scale(1);opacity:1}50%{transform:translateX(-50%) scale(0.85);opacity:0.6}}
+@keyframes badgeShimmer{0%,100%{transform:rotate(0deg);opacity:0.5}50%{transform:rotate(180deg);opacity:1}}
+.brand-title{font-size:clamp(30px,7.5vw,48px);font-weight:800;line-height:1.2;margin:4px 0 6px;white-space:nowrap;background:linear-gradient(135deg,#4785a8,#c4956a);background-size:200% 100%;background-position:100% 0;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;opacity:0;transform:translateY(10px) scale(0.96);animation:brandReveal 0.8s cubic-bezier(0.25,0.1,0.25,1) 0.3s forwards}
+@keyframes brandReveal{0%{opacity:0;transform:translateY(10px) scale(0.96);background-position:100% 0}60%{opacity:1;transform:translateY(0) scale(1);background-position:60% 0}100%{opacity:1;transform:translateY(0) scale(1);background-position:0% 0}}
+.brand-title.glow{animation:brandGlow 3s ease-in-out infinite 1.5s,brandReveal 0.8s cubic-bezier(0.25,0.1,0.25,1) 0.3s forwards}
+@keyframes brandGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(71,133,168,0.10))}50%{filter:drop-shadow(0 0 14px rgba(196,149,106,0.20))}}
+.sub-text{color:#86868b;font-size:14px;margin:4px 0 14px;opacity:0;transform:translateY(6px);animation:fadeUp 0.5s cubic-bezier(0.25,0.1,0.25,1) 0.6s forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.enter-area{opacity:0;transform:translateY(8px);animation:fadeUp 0.5s cubic-bezier(0.25,0.1,0.25,1) 0.9s forwards;margin-top:4px}
+.enter-btn{display:inline-flex;align-items:center;gap:6px;padding:13px 34px;border-radius:999px;font-size:15px;font-weight:600;background:rgba(71,133,168,0.1);backdrop-filter:blur(12px);border:1px solid rgba(71,133,168,0.2);color:#4785a8;cursor:pointer;text-decoration:none;box-shadow:0 2px 12px rgba(71,133,168,0.08),inset 0 1px 0 rgba(255,255,255,0.9);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);user-select:none;position:relative;overflow:hidden}
+.enter-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(71,133,168,0.18)}
+.enter-btn:active{transform:scale(0.96)}
+.bookmark-tip{color:#aeaeb2;font-size:11px;margin-top:8px;opacity:0;animation:fadeUp 0.4s ease-out 1.1s forwards}
+.pwa-area{margin-top:14px;padding-top:14px;opacity:0;animation:fadeUp 0.5s ease-out 5s forwards}
+.pwa-btn{background:none;border:none;font-size:12px;color:#86868b;cursor:pointer;padding:6px 14px;border-radius:8px;transition:all 0.3s}
+.pwa-btn:hover{background:rgba(0,0,0,0.04);color:#4785a8}
+.pwa-btn.installed{color:#34c759;cursor:default}
 </style>
 </head>
 <body>
-
-<canvas id="introCanvas"></canvas>
-
+<canvas id="mainCanvas"></canvas>
 <div class="card" id="mainCard">
   <div class="badge-wrap">
     <div class="badge-glass"><img class="badge-logo" src="/lebacenter/logo.jpg" alt="乐吧公益中心"></div>
@@ -179,7 +55,7 @@ body{
   <div class="brand-title" id="brandTitle">乐吧公益中心</div>
   <div class="sub-text">轻触进入 · 乐吧系统</div>
   <div class="enter-area">
-    <a href="https://35d84c29.r23.cpolar.top/gateway/" class="enter-btn" id="enterBtn">进入系统</a>
+    <a href="https://1fbf9a17.r23.cpolar.top/gateway/" class="enter-btn" id="enterBtn">进入系统</a>
     <div class="bookmark-tip">📌 收藏此页面，随时回来</div>
     <div class="pwa-area" id="pwaArea">
       <button class="pwa-btn" id="pwaBtn" onclick="installPWA()">📲 安装到主屏幕</button>
@@ -188,181 +64,247 @@ body{
 </div>
 
 <script>
-// ============================================================
-// 🎬 微光粒子 · 12秒叙事动画
-// 氛围优先：宁静→微光→粒子浮动→卡片显现→沉淀
-// ============================================================
+// ===== Canvas统一渲染引擎 =====
+var canvas=document.getElementById('mainCanvas');
+var ctx=canvas.getContext('2d');
+var W,H, POLY=0;
 
-(function(){
-  var canvas=document.getElementById('introCanvas');
-  var ctx=canvas.getContext('2d');
-  var W=window.innerWidth, H=window.innerHeight;
+function resize(){
+  W=window.innerWidth; H=window.innerHeight;
   var dpr=window.devicePixelRatio||1;
   canvas.width=W*dpr; canvas.height=H*dpr;
   canvas.style.width=W+'px'; canvas.style.height=H+'px';
   ctx.scale(dpr,dpr);
+}
+resize(); window.addEventListener('resize',resize);
+
+var MODE='intro';
+var introElapsed=0, healProgress=0, healMessage='', cardShown=false;
+var urlPromise=null, URL_JSON='/lebacenter/url.json', target='', baseUrl='';
+var btn=document.getElementById('enterBtn');
+
+// ===== 粒子 =====
+var particles=[];
+for(var i=0;i<Math.min(80,Math.floor(window.innerWidth*0.06));i++){
+  particles.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.3,vy:-(Math.random()*0.2+0.05),size:Math.random()*2.5+0.8,hue:i%2===0?32:220,alpha:Math.random()*0.3+0.1,phase:Math.random()*Math.PI*2});
+}
+
+var leafParticles=[];
+for(var i=0;i<60;i++){
+  var a=Math.random()*Math.PI*2, d=20+Math.random()*80;
+  leafParticles.push({baseAngle:a,baseDist:d,ox:0,oy:0,size:4+Math.random()*8,rotation:Math.random()*Math.PI*2,rotSpeed:(Math.random()-0.5)*0.02,hue:90+Math.random()*40,sat:40+Math.random()*30,light:45+Math.random()*25,swayPhase:Math.random()*Math.PI*2,swaySpeed:0.5+Math.random()*0.5,swayAmp:1+Math.random()*3,alpha:0.5+Math.random()*0.5});
+}
+
+var fireflies=[];
+for(var i=0;i<15;i++){
+  fireflies.push({x:Math.random()*W,y:Math.random()*H*0.8,vx:(Math.random()-0.5)*0.15,vy:-0.05-Math.random()*0.1,size:1.5+Math.random()*2,phase:Math.random()*Math.PI*2,alpha:0,flickerSpeed:1+Math.random()*2});
+}
+
+var petals=[];
+for(var i=0;i+10<10;i++){
+  petals.push({x:Math.random()*W,y:Math.random()*H*0.4,vx:(Math.random()-0.5)*0.3,vy:0.2+Math.random()*0.3,size:3+Math.random()*4,rotation:Math.random()*Math.PI*2,rotSpeed:(Math.random()-0.5)*0.05,alpha:0});
+}
+
+// ===== 绘制函数 =====
+function drawSky(progress,t){
+  var pct=Math.min(1,progress/100);
+  var r,g,b;
+  if(pct<0.3){var p=pct/0.3;r=24+(80-24)*p;g=16+(50-16)*p;b=30+(100-30)*p;}
+  else if(pct<0.7){var p=(pct-0.3)/0.4;r=80+(135-80)*p;g=50+(160-50)*p;b=100+(200-100)*p;}
+  else{var p=(pct-0.7)/0.3;r=135+(200-135)*p;g=160+(140-160)*p;b=200+(100-200)*p;}
   
-  // ===== 粒子系统（柔和飘动） =====
-  var particles=[];
-  var PCOUNT=Math.min(80,Math.floor(W*0.06));
-  for(var i=0;i<PCOUNT;i++){
-    particles.push({
-      x:Math.random()*W, y:Math.random()*H,
-      vx:(Math.random()-0.5)*0.25, vy:-(Math.random()*0.15+0.05),
-      size:Math.random()*2.5+0.8,
-      hue:32+Math.random()*10, // 暖茶色
-      alpha:Math.random()*0.3+0.1,
-      phase:Math.random()*Math.PI*2
-    });
+  var sa=(pct-0.15)*Math.PI, sx=W*0.3+Math.cos(sa)*W*0.3, sy=H*0.7-Math.sin(sa)*H*0.5;
+  var bg=ctx.createRadialGradient(W/2,H*0.3,0,W/2,H*0.3,H*0.7);
+  bg.addColorStop(0,'rgb('+r+','+g+','+b+')');
+  bg.addColorStop(1,'rgb('+Math.floor(r*0.3)+','+Math.floor(g*0.3)+','+Math.floor(b*0.3)+')');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  if(pct>0.05){var ga=Math.min(1,(pct-0.05)/0.1)*0.12;var sg=ctx.createRadialGradient(sx,sy,0,sx,sy,80+pct*40);sg.addColorStop(0,'rgba(255,220,180,'+ga+')');sg.addColorStop(0.5,'rgba(255,200,150,'+(ga*0.4)+')');sg.addColorStop(1,'transparent');ctx.fillStyle=sg;ctx.fillRect(0,0,W,H);}
+}
+
+function drawGround(progress){
+  var gndY=H*0.78, gh=Math.min(progress/100*40+8,48);
+  var grd=ctx.createLinearGradient(0,gndY,0,H);
+  grd.addColorStop(0,'#5a7a3a');grd.addColorStop(0.2,'#4a6a2e');grd.addColorStop(0.5,'#3d5a25');grd.addColorStop(1,'#2a3d18');
+  ctx.fillStyle=grd;ctx.fillRect(0,gndY,W,H-gndY);
+  ctx.strokeStyle='#6a9a4a';ctx.lineWidth=1.5;
+  for(var i=0;i<W;i+=5){var h=gh*(0.5+Math.random()*0.5);ctx.beginPath();ctx.moveTo(i,gndY);ctx.quadraticCurveTo(i+Math.sin(i*0.1)*3,gndY-h*0.5,i+Math.sin(i*0.1)*5,gndY-h);ctx.stroke();}
+  var sh=ctx.createRadialGradient(W/2,gndY+5,0,W/2,gndY+5,40+progress*0.3);sh.addColorStop(0,'rgba(0,0,0,0.15)');sh.addColorStop(1,'transparent');
+  ctx.fillStyle=sh;ctx.beginPath();ctx.arc(W/2,gndY+5,40+progress*0.3,0,Math.PI*2);ctx.fill();
+}
+
+function drawTrunk(progress,t){
+  if(progress<=0)return;
+  var pct=Math.min(1,progress/100), gndY=H*0.78, maxH=H*0.35, th=pct*maxH, bw=8+pct*8, tw=2+pct*3, cx=W/2, by=gndY-th, sway=Math.sin(t*0.001)*2;
+  ctx.beginPath();
+  ctx.moveTo(cx-bw/2,gndY);
+  ctx.quadraticCurveTo(cx-bw/4+sway,gndY-th*0.5,cx-tw/2+sway*0.5,by);
+  ctx.quadraticCurveTo(cx+tw/2+sway*0.5,by,cx+bw/4+sway,gndY-th*0.3);
+  ctx.quadraticCurveTo(cx+bw/2,gndY,cx+bw/2,gndY);
+  ctx.closePath();
+  var tg=ctx.createLinearGradient(cx-bw/2,gndY,cx+bw/2,gndY);
+  tg.addColorStop(0,'#5a3a1a');tg.addColorStop(0.3,'#7a5a2a');tg.addColorStop(0.5,'#8a6a3a');tg.addColorStop(0.7,'#7a5a2a');tg.addColorStop(1,'#4a2a10');
+  ctx.fillStyle=tg;ctx.fill();
+  if(pct>0.1){ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=0.5;for(var i=0;i<5;i++){var lx=cx+(Math.random()-0.5)*bw*0.6,ly=gndY-Math.random()*th*0.6;ctx.beginPath();ctx.moveTo(lx,ly);ctx.quadraticCurveTo(lx+(Math.random()-0.5)*4,ly-Math.random()*10,lx+(Math.random()-0.5)*3,ly-Math.random()*15);ctx.stroke();}}
+}
+
+function drawBranches(progress,t){
+  if(progress<10)return;
+  var gndY=H*0.78,maxH=H*0.35,th=Math.min(1,progress/100)*maxH,cx=W/2,topY=gndY-th;
+  var bc=Math.min(4,Math.floor(progress/15));
+  for(var i=0;i<bc;i++){
+    var ang=-Math.PI/2+(i%2===0?0.5:-0.5)+(Math.random()-0.5)*0.3,len=40+Math.random()*50,tk=3+Math.random()*2,by=topY+th*(0.2+Math.random()*0.4);
+    ctx.beginPath();ctx.moveTo(cx,by);
+    ctx.quadraticCurveTo(cx+Math.cos(ang)*len*0.5,by+Math.sin(ang)*len*0.5-5,cx+Math.cos(ang)*len,by+Math.sin(ang)*len-10);
+    ctx.strokeStyle='#6a4a2a';ctx.lineWidth=tk;ctx.lineCap='round';ctx.stroke();
+    if(progress>30){drawBranch(cx+Math.cos(ang)*len,by+Math.sin(ang)*len-10,ang+(Math.random()-0.5)*0.5,len*(0.3+Math.random()*0.2),tk*0.5,1,3,progress,t);}
   }
-  // ===== 中央光晕阶段 =====
-  var startTime=performance.now();
-  var cardRevealed=false;
-  
-  function render(){
-    var elapsed=(performance.now()-startTime)/1000;
-    
-    // ===== 背景渐变 =====
-    var bg=ctx.createRadialGradient(W/2,H*0.4,0,W/2,H*0.4,W*0.5);
-    var dark=Math.min(1,elapsed/2)*0.8+0.2;
-    bg.addColorStop(0,'rgba(24,20,30,'+dark+')');
-    bg.addColorStop(1,'rgba(16,12,22,'+dark+')');
-    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-    
-    // ===== 中央光晕 =====
-    var glowSize=Math.min(1,elapsed/3)*W*0.4;
-    var glowAlpha=Math.min(1,elapsed/2)*0.06;
-    var g=ctx.createRadialGradient(W/2,H*0.45,0,W/2,H*0.45,glowSize);
-    g.addColorStop(0,'rgba(196,149,106,'+glowAlpha+')');
-    g.addColorStop(0.6,'rgba(165,135,95,'+(glowAlpha*0.4)+')');
-    g.addColorStop(1,'transparent');
-    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-    
-    // ===== 粒子漂移 =====
+}
+
+function drawBranch(cx,cy,ang,len,tk,depth,maxD,progress,t){
+  if(depth>maxD||progress<depth*15||len<5)return;
+  var sway=Math.sin(t*0.002+depth)*2,ex=cx+Math.cos(ang+sway*0.05)*len,ey=cy+Math.sin(ang+sway*0.05)*len;
+  ctx.beginPath();ctx.moveTo(cx,cy);
+  ctx.quadraticCurveTo(cx+Math.cos(ang+sway*0.03)*len*0.5,cy+Math.sin(ang+sway*0.03)*len*0.5-2,ex,ey);
+  ctx.strokeStyle='#6a4a2a';ctx.lineWidth=Math.max(0.5,tk);ctx.lineCap='round';ctx.stroke();
+  var children=Math.min(2,Math.floor(progress/30));
+  for(var i=0;i<children;i++){var na=ang+(i===0?0.4:-0.4)+(Math.random()-0.5)*0.2,nl=len*(0.6+Math.random()*0.2),nt=Math.max(0.5,tk*(0.5+Math.random()*0.2));drawBranch(ex,ey,na,nl,nt,depth+1,maxD,progress,t);}
+}
+
+function drawCanopy(progress,t){
+  if(progress<15)return;
+  var pct=Math.min(1,progress/100),gndY=H*0.78,maxH=H*0.35,cx=W/2,topY=gndY-maxH*pct,spread=pct*120,sway=Math.sin(t*0.001)*4,cy=topY-30*pct;
+  var grd=ctx.createRadialGradient(cx+sway,cy,0,cx+sway,cy,spread);
+  grd.addColorStop(0,'rgba(80,160,60,'+(0.2*pct)+')');grd.addColorStop(0.5,'rgba(60,140,50,'+(0.15*pct)+')');grd.addColorStop(1,'transparent');
+  ctx.fillStyle=grd;ctx.beginPath();ctx.arc(cx+sway,cy,spread,0,Math.PI*2);ctx.fill();
+  for(var i=0;i<leafParticles.length;i++){
+    var lp=leafParticles[i],dist=lp.baseDist*pct,angle=lp.baseAngle+Math.sin(t*0.001*lp.swaySpeed+lp.swayPhase)*lp.swayAmp*0.02;
+    var lx=cx+Math.cos(angle)*dist+sway*0.5,ly=cy+Math.sin(angle)*dist*0.6-10;
+    if(ly>gndY-20)continue;
+    var alpha=lp.alpha*Math.min(1,(pct-0.15)/0.2)*pct;if(alpha<0.01)continue;
+    ctx.save();ctx.translate(lx,ly);ctx.rotate(lp.rotation+t*0.001*lp.rotSpeed);ctx.globalAlpha=alpha;
+    ctx.beginPath();ctx.ellipse(0,0,lp.size*0.5,lp.size*0.7,0,0,Math.PI*2);ctx.fillStyle='hsl('+lp.hue+','+lp.sat+'%,'+lp.light+'%)';ctx.fill();ctx.restore();
+  }
+  if(pct>0.5){var ha=(pct-0.5)*0.15;var hl=ctx.createRadialGradient(cx+sway-spread*0.2,cy-spread*0.3,0,cx+sway-spread*0.2,cy-spread*0.3,spread*0.4);hl.addColorStop(0,'rgba(255,255,200,'+ha+')');hl.addColorStop(1,'transparent');ctx.fillStyle=hl;ctx.beginPath();ctx.arc(cx+sway-spread*0.2,cy-spread*0.3,spread*0.4,0,Math.PI*2);ctx.fill();}
+}
+
+function drawFlowers(progress,t){
+  if(progress<50)return;
+  var tp=(Math.min(1,progress/100)-0.5)/0.5;if(tp<0)return;
+  var gndY=H*0.78,maxH=H*0.35,cx=W/2,topY=gndY-maxH*Math.min(1,progress/100),cy=topY-30*Math.min(1,progress/100),spread=Math.min(1,progress/100)*120,sway=Math.sin(t*0.001)*4;
+  var fpos=[{a:0.8,d:0.6,s:1},{a:-0.6,d:0.7,s:0.9},{a:1.5,d:0.4,s:0.7},{a:-1.2,d:0.5,s:0.8},{a:0.3,d:0.3,s:0.6}];
+  for(var i=0;i<fpos.length;i++){
+    var f=fpos[i],fx=cx+Math.cos(f.a+sway*0.02)*spread*f.d,fy=cy+Math.sin(f.a)*spread*f.d*0.4-5,fs=4+tp*f.s*10,alpha=tp*f.s;
+    for(var j=0;j<5;j++){var pa=j*Math.PI*2/5+t*0.0005;ctx.beginPath();ctx.ellipse(fx+Math.cos(pa)*fs*0.5,fy+Math.sin(pa)*fs*0.5,fs*0.4,fs*0.6,pa,0,Math.PI*2);ctx.fillStyle='rgba(255,220,200,'+(alpha*0.8)+')';ctx.fill();}
+    ctx.beginPath();ctx.arc(fx,fy,fs*0.15,0,Math.PI*2);ctx.fillStyle='rgba(255,200,50,'+(alpha*0.9)+')';ctx.fill();
+  }
+}
+
+function drawAtmo(progress,t){
+  var pct=Math.min(1,progress/100);
+  if(MODE==='intro'||MODE==='idle'){
     for(var i=0;i<particles.length;i++){
-      var p=particles[i];
-      p.x+=p.vx; p.y+=p.vy;
-      p.vy+=Math.sin(performance.now()*0.001+p.phase)*0.002;
-      if(p.y<-10){p.y=H+10;p.x=Math.random()*W;}
-      if(p.x<-10||p.x>W+10){p.vx*=-1;}
-      // 粒子显现（前2秒渐入）
-      var pAlpha=p.alpha*Math.min(1,elapsed/2);
-      ctx.globalAlpha=pAlpha;
-      ctx.fillStyle='hsl('+p.hue+',80%,70%)';
-      ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
-      // 柔光
-      ctx.shadowColor='hsl('+p.hue+',80%,70%)';
-      ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;
+      var p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=Math.sin(t*0.001+p.phase)*0.002;
+      if(p.y<-10){p.y=H+10;p.x=Math.random()*W;}if(p.x<-10||p.x>W+10)p.vx*=-1;
+      var pa=p.alpha*Math.min(1,introElapsed/2);ctx.globalAlpha=pa;ctx.fillStyle='hsl('+p.hue+',80%,70%)';ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+      ctx.shadowColor='hsl('+p.hue+',80%,70%)';ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;
     }
     ctx.globalAlpha=1;
-    
-    // ===== 卡片显现 =====
-    if(elapsed>5 && !cardRevealed){
-      cardRevealed=true;
-      document.getElementById('mainCard').classList.add('show');
-      setTimeout(function(){
-        var t=document.getElementById('brandTitle');
-        if(t) t.classList.add('glow');
-      },1200);
-      urlPromise=fetchTunnelUrl();
-    }
-    
-    // ===== 12秒结束→淡出canvas =====
-    if(elapsed>12){
-      // 渐暗
-      var fadeT=(elapsed-12)/0.8;
-      if(fadeT>=1){
-        canvas.style.display='none';
-        document.body.style.background='radial-gradient(ellipse 60% 40% at 20% 20%,rgba(71,133,168,0.04) 0%,transparent 60%),radial-gradient(ellipse 50% 30% at 80% 80%,rgba(196,149,106,0.04) 0%,transparent 50%),linear-gradient(135deg,#f5f2ed,#ece8e2)';
-        document.body.style.overflow='auto';
-        document.body.style.minHeight='100vh';
-        return; // stop loop
-      }
-      canvas.style.opacity=1-fadeT;
-    }
-    
-    requestAnimationFrame(render);
   }
+  if(MODE==='healing'&&pct>0.1){
+    for(var i=0;i<fireflies.length;i++){var f=fireflies[i];f.x+=f.vx;f.y+=f.vy;if(f.y<-20||f.y>H*0.7){f.y=H*0.1+Math.random()*H*0.3;f.x=Math.random()*W;}if(f.x<-20||f.x>W+20)f.vx*=-1;f.alpha=Math.sin(t*0.001*f.flickerSpeed+f.phase)*0.3+0.3;var glow=Math.sin(t*0.001*f.flickerSpeed+f.phase)*2+3;ctx.fillStyle='rgba(255,230,150,'+(f.alpha*pct)+')';ctx.shadowColor='rgba(255,200,100,0.5)';ctx.shadowBlur=glow;ctx.beginPath();ctx.arc(f.x,f.y,f.size,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
+  }
+  if(MODE==='healing'&&pct>0.5){var pa=(pct-0.5)*2;for(var i=0;i<petals.length;i++){var pt=petals[i];pt.x+=pt.vx;pt.y+=pt.vy;pt.rotation+=pt.rotSpeed;pt.vy+=0.001;if(pt.y>H*0.85||pt.x<-20||pt.x>W+20){pt.x=Math.random()*W;pt.y=-10;pt.vx=(Math.random()-0.5)*0.5;pt.vy=0.2+Math.random()*0.3;}pt.alpha=pa*0.3;ctx.save();ctx.translate(pt.x,pt.y);ctx.rotate(pt.rotation);ctx.globalAlpha=pt.alpha*pct;ctx.fillStyle='rgba(255,200,180,0.6)';ctx.beginPath();ctx.ellipse(0,0,pt.size,pt.size*0.5,0,0,Math.PI*2);ctx.fill();ctx.restore();}}
+  if(MODE==='complete'){for(var i=0;i<8;i++){var cw=2+Math.sin(t*0.002+i)*2,crx=W/2+(Math.random()-0.5)*40;ctx.fillStyle='rgba(255,255,200,'+(0.03+Math.sin(t*0.001+i)*0.02)+')';ctx.fillRect(crx-0.5,H*0.3,cw,Math.random()*H*0.4+H*0.1);}}
+}
+
+function drawProgressText(progress,msg){
+  if(progress<=0||MODE!=='healing')return;
+  var pct=Math.min(1,progress/100),gndY=H*0.78;
+  ctx.fillStyle='rgba(255,255,255,'+(0.5+0.3*pct)+')';ctx.font='12px -apple-system,PingFang SC,sans-serif';ctx.textAlign='center';ctx.fillText(msg||'培育中…',W/2,gndY+30);
+  if(progress<100){var bw=120,bh=2;ctx.fillStyle='rgba(255,255,255,0.1)';ctx.fillRect(W/2-bw/2,gndY+38,bw,bh);ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillRect(W/2-bw/2,gndY+38,bw*pct,bh);}
+  else{ctx.fillStyle='rgba(80,200,120,0.8)';ctx.font='15px -apple-system,PingFang SC,sans-serif';ctx.fillText('🌳 培育完成！',W/2,gndY+30);ctx.fillText('正在进入系统…',W/2,gndY+52);}
+}
+
+// ===== 主循环 =====
+function render(t){
+  POLY=t*0.001;
+  drawSky(healProgress,t);
+  if((MODE==='healing'||MODE==='complete')&&healProgress>0){drawGround(healProgress);drawTrunk(healProgress,t);drawBranches(healProgress,t);drawCanopy(healProgress,t);drawFlowers(healProgress,t);}
+  drawAtmo(healProgress,t);
+  if(MODE==='healing')drawProgressText(healProgress,healMessage);
   
-  render();
-})();
+  if(MODE==='intro'||MODE==='idle'){
+    introElapsed=t/1000;
+    if(introElapsed>5&&!cardShown){cardShown=true;document.getElementById('mainCard').classList.add('show');setTimeout(function(){var el=document.getElementById('brandTitle');if(el)el.classList.add('glow');},1200);urlPromise=fetchTunnelUrl();}
+    if(introElapsed>12){var ft=(introElapsed-12)/0.8;if(ft>=1){canvas.style.display='none';document.body.style.background='#f5f2ed';document.body.style.overflow='auto';document.body.style.minHeight='100vh';MODE='idle';return;}canvas.style.opacity=1-ft;}
+  }
+  requestAnimationFrame(render);
+}
 
-// ============================================================
-// 🌱 小树修复 & Portal过渡（保留）
-// ============================================================
-
-var TREE_HTML='<div class="heal-overlay" id="healOverlay"><div class="heal-card" id="healCard"><div class="tree-scene"><div class="ground"></div><div class="trunk"></div><div class="branch r"></div><div class="branch l"></div><div class="leaf green r1"></div><div class="leaf light r2"></div><div class="leaf green l1"></div><div class="leaf light l2"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="flower f1">🌸</div><div class="flower f2">🌼</div></div><div class="heal-title">🌱 小树正在修复…</div><div class="heal-sub">系统正在自愈，请稍等</div><div class="heal-progress"><div class="heal-dot"></div><div class="heal-dot"></div><div class="heal-dot"></div></div><div class="heal-status" id="healStatus">检测到异常，正在启动修复…</div></div></div>';
-
-var URL_JSON='/lebacenter/url.json';
-var target='';
-var baseUrl='';
-var btn=document.getElementById('enterBtn');
-var MAX_RETRIES=12;
-var retryCount=0;
-var urlPromise=null;
-
+// ===== PWA =====
 var deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;document.getElementById('pwaArea').style.display='block';});
 window.addEventListener('appinstalled',function(){document.getElementById('pwaBtn').textContent='✅ 已安装';document.getElementById('pwaBtn').className='pwa-btn installed';});
 function installPWA(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(function(r){if(r.outcome==='accepted')console.log('PWA installed');deferredPrompt=null;});}else{alert('请在浏览器菜单中点击「添加到主屏幕」');}}
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/lebacenter/sw.js').catch(function(){});});}
 
+// ===== URL & 自愈 =====
 function fetchTunnelUrl(){return fetch(URL_JSON+'?t='+Date.now()).then(function(r){return r.json();}).then(function(d){return d.url||'';}).catch(function(){return '';});}
 
 btn.addEventListener('click',function(e){
   e.preventDefault();
-  var clickStart=Date.now();
-  btn.textContent='⏳ 检测中...';
+  btn.textContent='🌱 准备种树…';
   btn.style.pointerEvents='none';
+  MODE='healing';
+  canvas.style.display='block';canvas.style.opacity=1;
+  document.body.style.background='#121016';document.body.style.overflow='hidden';
+  document.getElementById('mainCard').style.transition='opacity 0.5s ease';document.getElementById('mainCard').style.opacity='0';
   (urlPromise||fetchTunnelUrl()).then(function(url){
     if(url){target=url+'/gateway/';baseUrl=url;btn.setAttribute('href',target);}
     else{target=btn.getAttribute('href')||target;baseUrl=target.replace('/gateway/','');}
-    var cineDiv=document.createElement('div');
-    cineDiv.className='cine-layer';
-    cineDiv.innerHTML='<div class="cine-dark"></div><div class="cine-core"></div><div class="cine-ring"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-particle"></div><div class="cine-wave"></div><div class="cine-label">即将进入乐吧系统</div>';
-    document.body.appendChild(cineDiv);
-    requestAnimationFrame(function(){cineDiv.classList.add('show');});
-    var ctrl=new AbortController();
-    setTimeout(function(){ctrl.abort();},5000);
-    fetch(target,{method:'HEAD',mode:'no-cors',signal:ctrl.signal})
-      .then(function(){var e=Date.now()-clickStart;setTimeout(function(){window.location.href=target;},Math.max(0,2200-e));})
-      .catch(function(){cineDiv.remove();showHealAnimation();});
+    healProgress=5;healMessage='正在培育种子…';doHeal();
+  }).catch(function(){
+    target=btn.getAttribute('href')||target;baseUrl=target.replace('/gateway/','');doHeal();
   });
 });
 
-function showHealAnimation(){
-  var div=document.createElement('div');
-  div.innerHTML=TREE_HTML;
-  document.body.appendChild(div.firstElementChild);
-  setTimeout(function(){document.querySelector('.tree-scene').classList.add('healing');},2200);
-  triggerHeal();
-}
-function triggerHeal(){
-  var status=document.getElementById('healStatus');
-  status.textContent='🔧 正在修复系统连接…';
-  fetch(baseUrl+'/api/heal',{method:'POST',signal:AbortSignal.timeout(10000)})
+function doHeal(){
+  healProgress=5;
+  fetch(baseUrl+'/api/heal',{method:'POST',signal:AbortSignal.timeout(5000)})
     .then(function(r){return r.json();})
-    .then(function(data){if(data.ok)status.textContent='✅ 修复完成，验证中…';else status.textContent='⚠️ 自动修复部分完成，继续验证…';startPolling();})
-    .catch(function(){status.textContent='⚠️ 修复指令已发出，等待系统恢复…';urlPromise=fetchTunnelUrl();startPolling();});
+    .then(function(d){if(d.ok)setTimeout(pollHealStatus,1000);})
+    .catch(function(){healProgress=20;healMessage='连接修复端…';setTimeout(function(){healProgress=50;healMessage='更新公网地址…';setTimeout(function(){healProgress=80;healMessage='等待CDN刷新…';setTimeout(finishHeal,5000);},2000);},2000);});
 }
-function startPolling(){retryCount=0;pollUrl();}
-function pollUrl(){
-  retryCount++;
-  var status=document.getElementById('healStatus');
-  var card=document.getElementById('healCard');
-  fetchTunnelUrl().then(function(newUrl){
-    if(newUrl&&newUrl!==baseUrl.replace('/gateway/','')){baseUrl=newUrl;target=newUrl+'/gateway/';}
-    fetch(baseUrl+'/gateway/',{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(5000)})
-      .then(function(){status.textContent='✅ 系统已恢复！正在跳转…';status.className='heal-status ok';card.classList.add('success');setTimeout(function(){window.location.href=target;},1200);})
-      .catch(function(){if(retryCount>=MAX_RETRIES){status.textContent='❌ 暂时无法恢复';status.className='heal-status fail';document.getElementById('healOverlay').style.display='none';showMaintenancePopup();btn.textContent='🏛️ 进入乐吧系统';btn.style.pointerEvents='auto';return;}status.textContent='🔄 检测中 ('+retryCount+'/'+MAX_RETRIES+')…';setTimeout(pollUrl,5000);});
-  });
+
+function pollHealStatus(){
+  if(healProgress>=100){finishHeal();return;}
+  fetch(baseUrl+'/api/heal-status?t='+Date.now(),{signal:AbortSignal.timeout(3000)})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.progress===undefined)return setTimeout(fallbackPoll,2000);
+      healProgress=data.progress;healMessage=data.message;
+      if(healProgress>=100)finishHeal();
+      else if(healProgress<0){healProgress=80;healMessage='自愈遇到问题，继续尝试…';setTimeout(fallbackPoll,3000);}
+      else setTimeout(pollHealStatus,1500);
+    })
+    .catch(function(){setTimeout(fallbackPoll,2000);});
 }
-function showMaintenancePopup(){
-  var o=document.createElement('div');
-  o.className='maint-overlay';
-  o.innerHTML='<div class="maint-popup"><div class="maint-icon">🔧</div><div class="maint-title">系统临时维护中</div><div class="maint-desc">乐吧系统正在维护升级<br>请稍后再试</div><div class="maint-contacts">如有紧急问题请联系施老师</div><button class="maint-btn" onclick="this.parentElement.parentElement.remove()">我知道了</button></div>';
-  document.body.appendChild(o);
+
+var fc=0;
+function fallbackPoll(){
+  fc++;if(healProgress>=100){finishHeal();return;}
+  if(fc<5){healProgress=Math.min(90,20+fc*15);healMessage='修复中 ('+fc+'/5)…';setTimeout(fallbackPoll,2000);}
+  else{healProgress=95;healMessage='即将完成…';
+    fetchTunnelUrl().then(function(nu){if(nu&&nu!==baseUrl.replace('/gateway/','')){baseUrl=nu;target=nu+'/gateway/';healProgress=100;finishHeal();}else{setTimeout(function(){healProgress=100;finishHeal();},3000);}}).catch(function(){setTimeout(function(){healProgress=100;finishHeal();},3000);});}
 }
+
+function finishHeal(){
+  healProgress=100;healMessage='OK';MODE='complete';
+  fetchTunnelUrl().then(function(nu){if(nu)target=nu+'/gateway/';setTimeout(function(){window.location.href=target;},1500);}).catch(function(){setTimeout(function(){window.location.href=target;},1500);});
+}
+
+// GO!
+requestAnimationFrame(render);
 </script>
 </body>
 </html>
