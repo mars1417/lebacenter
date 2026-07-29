@@ -8,57 +8,88 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta name="version" content="v4-cors-20260729-2">
+<meta name="version" content="v5-nonanimation-20260729">
 <link rel="manifest" href="/lebacenter/manifest.json">
-<title>乐吧公益中心 · v4</title>
+<title>乐吧公益中心</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{overflow:hidden;width:100%;height:100%;background:#121016}
-body{font-family:"PingFang SC","SF Pro Display","Microsoft YaHei",sans-serif;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;position:relative}
-canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;pointer-events:none}
-.card{background:rgba(248,244,238,0.88);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:28px;padding:50px 40px 36px;max-width:460px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,0.06),0 0 0 1px rgba(255,255,255,0.8);opacity:0;transform:scale(0.95);position:relative;overflow:hidden;transition:none;pointer-events:none;z-index:2}
-.card.show{animation:cardIn 1.2s cubic-bezier(0.15,0.85,0.35,1) forwards;pointer-events:auto}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#4785a8,#6da8a0,#8fc1b5,#6da8a0,#4785a8);background-size:200% 100%;animation:waveShift 4s ease-in-out infinite}
+body{
+  font-family:"PingFang SC","SF Pro Display","Microsoft YaHei",sans-serif;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:20px;text-align:center;
+  background:linear-gradient(135deg,#f0f2f5,#e4e8ee);
+}
+.card{
+  background:rgba(255,255,255,0.88);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
+  border-radius:28px;padding:50px 40px 36px;max-width:460px;width:100%;
+  box-shadow:0 24px 80px rgba(0,0,0,0.06),0 0 0 1px rgba(255,255,255,0.8);
+  animation:cardIn 0.8s cubic-bezier(0.15,0.85,0.35,1) forwards;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#4785a8,#6da8a0,#8fc1b5,#6da8a0,#4785a8);
+  background-size:200% 100%;animation:waveShift 4s ease-in-out infinite
+}
 @keyframes waveShift{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
 @keyframes cardIn{from{opacity:0;transform:scale(0.92) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .badge-wrap{position:relative;width:80px;height:80px;margin:0 auto 8px;perspective:800px}
-.badge-glass{width:80px;height:80px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,0.95) 0%,rgba(230,240,255,0.6) 40%,rgba(200,215,240,0.3) 70%,rgba(180,200,230,0.15) 100%);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.8);box-shadow:0 8px 32px rgba(71,133,168,0.12),inset 0 1px 0 rgba(255,255,255,0.9),inset 0 -1px 0 rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;transform:rotateX(6deg) rotateY(-8deg);transition:transform 0.4s cubic-bezier(0.25,0.1,0.25,1);animation:badgeFloat 5s ease-in-out infinite 0.5s;overflow:hidden}
+.badge-glass{
+  width:80px;height:80px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,0.95) 0%,rgba(230,240,255,0.6) 40%,rgba(200,215,240,0.3) 70%,rgba(180,200,230,0.15) 100%);
+  backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.8);
+  box-shadow:0 8px 32px rgba(71,133,168,0.12),inset 0 1px 0 rgba(255,255,255,0.9),inset 0 -1px 0 rgba(0,0,0,0.04);
+  display:flex;align-items:center;justify-content:center;
+  transform:rotateX(6deg) rotateY(-8deg);
+  animation:badgeFloat 5s ease-in-out infinite 0.5s;overflow:hidden
+}
 .badge-logo{width:65%;height:65%;object-fit:contain;border-radius:50%;transform:translateZ(4px)}
-.badge-glass::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.5) 30%,transparent 60%,rgba(255,255,255,0.2) 80%,transparent 100%);animation:badgeShimmer 4s ease-in-out infinite 0.8s;z-index:1}
-.badge-shadow{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:60px;height:12px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,0.06),transparent);animation:shadowPulse 5s ease-in-out infinite 0.5s}
+.badge-glass::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.5) 30%,transparent 60%,rgba(255,255,255,0.2) 80%,transparent 100%);
+  animation:badgeShimmer 4s ease-in-out infinite 0.8s;z-index:1
+}
 @keyframes badgeFloat{0%,100%{transform:rotateX(6deg) rotateY(-8deg) translateY(0)}50%{transform:rotateX(6deg) rotateY(-8deg) translateY(-4px)}}
-@keyframes shadowPulse{0%,100%{transform:translateX(-50%) scale(1);opacity:1}50%{transform:translateX(-50%) scale(0.85);opacity:0.6}}
 @keyframes badgeShimmer{0%,100%{transform:rotate(0deg);opacity:0.5}50%{transform:rotate(180deg);opacity:1}}
-.brand-title{font-size:clamp(30px,7.5vw,48px);font-weight:800;line-height:1.2;margin:4px 0 6px;white-space:nowrap;background:linear-gradient(135deg,#4785a8,#c4956a);background-size:200% 100%;background-position:100% 0;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;opacity:0;transform:translateY(10px) scale(0.96);animation:brandReveal 0.8s cubic-bezier(0.25,0.1,0.25,1) 0.3s forwards}
-@keyframes brandReveal{0%{opacity:0;transform:translateY(10px) scale(0.96);background-position:100% 0}60%{opacity:1;transform:translateY(0) scale(1);background-position:60% 0}100%{opacity:1;transform:translateY(0) scale(1);background-position:0% 0}}
-.brand-title.glow{animation:brandGlow 3s ease-in-out infinite 1.5s,brandReveal 0.8s cubic-bezier(0.25,0.1,0.25,1) 0.3s forwards}
-@keyframes brandGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(71,133,168,0.10))}50%{filter:drop-shadow(0 0 14px rgba(196,149,106,0.20))}}
-.sub-text{color:#86868b;font-size:14px;margin:4px 0 14px;opacity:0;transform:translateY(6px);animation:fadeUp 0.5s cubic-bezier(0.25,0.1,0.25,1) 0.6s forwards}
+.brand-title{
+  font-size:clamp(30px,7.5vw,48px);font-weight:800;line-height:1.2;margin:4px 0 6px;white-space:nowrap;
+  background:linear-gradient(135deg,#4785a8,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:brandReveal 0.8s cubic-bezier(0.25,0.1,0.25,1) 0.3s forwards
+}
+@keyframes brandReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.sub-text{color:#86868b;font-size:14px;margin:4px 0 14px;animation:fadeUp 0.5s ease-out 0.6s forwards}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.enter-area{opacity:0;transform:translateY(8px);animation:fadeUp 0.5s cubic-bezier(0.25,0.1,0.25,1) 0.9s forwards;margin-top:4px}
-.enter-btn{display:inline-flex;align-items:center;gap:6px;padding:13px 34px;border-radius:999px;font-size:15px;font-weight:600;background:rgba(71,133,168,0.1);backdrop-filter:blur(12px);border:1px solid rgba(71,133,168,0.2);color:#4785a8;cursor:pointer;text-decoration:none;box-shadow:0 2px 12px rgba(71,133,168,0.08),inset 0 1px 0 rgba(255,255,255,0.9);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);user-select:none;position:relative;overflow:hidden}
+.enter-area{margin-top:4px;animation:fadeUp 0.5s ease-out 0.9s forwards}
+.enter-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:13px 34px;border-radius:999px;font-size:15px;font-weight:600;
+  background:rgba(71,133,168,0.1);backdrop-filter:blur(12px);
+  border:1px solid rgba(71,133,168,0.2);
+  color:#4785a8;cursor:pointer;text-decoration:none;
+  box-shadow:0 2px 12px rgba(71,133,168,0.08),inset 0 1px 0 rgba(255,255,255,0.9);
+  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);user-select:none
+}
 .enter-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(71,133,168,0.18)}
 .enter-btn:active{transform:scale(0.96)}
-.bookmark-tip{color:#aeaeb2;font-size:11px;margin-top:8px;opacity:0;animation:fadeUp 0.4s ease-out 1.1s forwards}
-.pwa-area{margin-top:14px;padding-top:14px;opacity:0;animation:fadeUp 0.5s ease-out 5s forwards}
+.enter-btn.loading{pointer-events:none;opacity:0.7}
+.bookmark-tip{color:#aeaeb2;font-size:11px;margin-top:8px;animation:fadeUp 0.4s ease-out 1.1s forwards}
+.pwa-area{margin-top:14px;padding-top:14px;animation:fadeUp 0.5s ease-out 1.3s forwards}
 .pwa-btn{background:none;border:none;font-size:12px;color:#86868b;cursor:pointer;padding:6px 14px;border-radius:8px;transition:all 0.3s}
 .pwa-btn:hover{background:rgba(0,0,0,0.04);color:#4785a8}
 .pwa-btn.installed{color:#34c759;cursor:default}
+.btn-err{color:#e74c3c;font-size:12px;margin-top:10px;min-height:18px;animation:fadeUp 0.3s ease-out}
 </style>
 </head>
 <body>
-<canvas id="mainCanvas"></canvas>
-<div class="card" id="mainCard">
+<div class="card">
   <div class="badge-wrap">
     <div class="badge-glass"><img class="badge-logo" src="/lebacenter/logo.jpg" alt="乐吧公益中心"></div>
-    <div class="badge-shadow"></div>
   </div>
-  <div class="brand-title" id="brandTitle">乐吧公益中心</div>
+  <div class="brand-title">乐吧公益中心</div>
   <div class="sub-text">轻触进入 · 乐吧系统</div>
   <div class="enter-area">
-    <a href="https://1fbf9a17.r23.cpolar.top/gateway/" class="enter-btn" id="enterBtn">进入系统</a>
+    <a class="enter-btn" id="enterBtn">进入系统</a>
     <div class="bookmark-tip">📌 收藏此页面，随时回来</div>
+    <div class="btn-err" id="btnErr"></div>
     <div class="pwa-area" id="pwaArea">
       <button class="pwa-btn" id="pwaBtn" onclick="installPWA()">📲 安装到主屏幕</button>
     </div>
@@ -66,325 +97,65 @@ canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;pointer-ev
 </div>
 
 <script>
-// ===== Canvas统一渲染引擎 =====
-var canvas=document.getElementById('mainCanvas');
-var ctx=canvas.getContext('2d');
-var W,H, POLY=0;
+// ===== 简版入口: 点按钮→抓url.json→跳转cpolar网关 =====
+var URL_JSON = '/lebacenter/url.json';
+var btn = document.getElementById('enterBtn');
+var errEl = document.getElementById('btnErr');
 
-function resize(){
-  W=window.innerWidth; H=window.innerHeight;
-  var dpr=window.devicePixelRatio||1;
-  canvas.width=W*dpr; canvas.height=H*dpr;
-  canvas.style.width=W+'px'; canvas.style.height=H+'px';
-  ctx.scale(dpr,dpr);
-}
-resize(); window.addEventListener('resize',resize);
-
-var MODE='intro';
-var introElapsed=0, healProgress=0, healMessage='', cardShown=false;
-var urlPromise=null, URL_JSON='/lebacenter/url.json', target='', baseUrl='';
-var btn=document.getElementById('enterBtn');
-
-// ===== easeOutCubic 平滑曲线 =====
-function smoothPct(raw){var t=Math.min(1,raw/100);return 1-Math.pow(1-t,3);}
-
-// ===== 预生成草形数据(不再每帧随机) =====
-var grassData=[];
-for(var i=0;i<200;i++){
-  var x=i*Math.max(3,W/200);
-  grassData.push({x:x,h:20+Math.random()*28,curve1:-2+Math.random()*4,curve2:-4+Math.random()*8});
+function fetchTunnelUrl(){
+  return fetch(URL_JSON+'?t='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){return d.url||'';});
 }
 
-// ===== 粒子 =====
-var particles=[];
-for(var i=0;i<Math.min(80,Math.floor(window.innerWidth*0.06));i++){
-  particles.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.3,vy:-(Math.random()*0.2+0.05),size:Math.random()*2.5+0.8,hue:i%2===0?32:220,alpha:Math.random()*0.3+0.1,phase:Math.random()*Math.PI*2});
-}
-
-var leafParticles=[];
-for(var i=0;i<60;i++){
-  var a=Math.random()*Math.PI*2, d=20+Math.random()*80;
-  leafParticles.push({baseAngle:a,baseDist:d,size:4+Math.random()*8,rotation:Math.random()*Math.PI*2,rotSpeed:(Math.random()-0.5)*0.02,hue:90+Math.random()*40,sat:40+Math.random()*30,light:45+Math.random()*25,swayPhase:Math.random()*Math.PI*2,swaySpeed:0.5+Math.random()*0.8,swayAmp:1+Math.random()*3,alpha:0.5+Math.random()*0.5});
-
-}
-var clouds=[];
-for(var i=0;i<4;i++){
-  clouds.push({x:Math.random()*W,y:10+Math.random()*H*0.15,w:60+Math.random()*120,speed:0.08+Math.random()*0.12,alpha:0.08+Math.random()*0.1});
-}
-
-var fireflies=[];
-for(var i=0;i<15;i++){
-  fireflies.push({x:Math.random()*W,y:Math.random()*H*0.8,vx:(Math.random()-0.5)*0.15,vy:-0.05-Math.random()*0.1,size:1.5+Math.random()*2,phase:Math.random()*Math.PI*2,alpha:0,flickerSpeed:1+Math.random()*2});
-}
-
-var petals=[];
-for(var i=0;i<10;i++){
-  petals.push({x:Math.random()*W,y:Math.random()*H*0.4,vx:(Math.random()-0.5)*0.3,vy:0.2+Math.random()*0.3,size:3+Math.random()*4,rotation:Math.random()*Math.PI*2,rotSpeed:(Math.random()-0.5)*0.05,alpha:0});
-}
-
-// ===== 新版Canvas渲染: 几何线条树 + 橙绿配色 =====
-function smoothPct(raw){var t=Math.min(1,raw/100);return 1-Math.pow(1-t,3);}
-
-function initCanvasSafe(){
-  var c=document.getElementById('mainCanvas');
-  if(!c||!c.getContext)return false;
-  var cx=c.getContext('2d');
-  if(!cx)return false;
-  if(c.width===0||c.height===0)return false;
-  return true;
-}
-
-function drawBg(pct,t){
-  pct=Math.min(1,pct/100);var W=canvas.width,H=canvas.height;
-  ctx.fillStyle='#FDF8F3';ctx.fillRect(0,0,W,H);
-  var gndY=H*0.82;
-  ctx.strokeStyle='rgba(16,185,129,0.10)';ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(W*0.1,gndY);ctx.quadraticCurveTo(W*0.5,gndY-1,W*0.9,gndY);ctx.stroke();
-  if(pct>0){var g=ctx.createRadialGradient(W*0.5,gndY+10,0,W*0.5,gndY+10,W*0.35);g.addColorStop(0,'rgba(255,107,53,'+(0.03*pct)+')');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(W*0.5,gndY+10,W*0.35,W*0.08,0,0,Math.PI*2);ctx.fill();}
-}
-
-function drawTree(pct,t){
-  var p=Math.min(1,pct/100);if(p<=0)return;
-  var W=canvas.width,H=canvas.height,cx=W*0.5,gndY=H*0.82,maxH=H*0.38,th=p*maxH,topY=gndY-th;
-  var sway=Math.sin(t*0.001)*(1+p*2),sw2=sway*0.5;
-  // 树干(橙)
-  ctx.strokeStyle='#FF6B35';ctx.lineWidth=Math.max(1.5,2+p*3);ctx.lineCap='round';
-  ctx.beginPath();ctx.moveTo(cx-2,gndY);ctx.quadraticCurveTo(cx-4+sway*0.3,gndY-th*0.4,cx-1+sw2,topY);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(cx+2,gndY);ctx.quadraticCurveTo(cx+4+sway*0.3,gndY-th*0.4,cx+1+sw2,topY);ctx.stroke();
-  // 树枝(绿)
-  if(p>0.2){var bc=Math.min(4,Math.floor(p/0.15));ctx.strokeStyle='#10B981';ctx.lineWidth=1.2;
-    for(var i=0;i<bc;i++){var sd=i%2===0?1:-1,by=topY+th*(0.15+i*0.18),bx=cx+sd*p*3,len=(15+i*8)*p*0.6,ang=-Math.PI/2+sd*(0.4+i*0.05)+sway*0.01;
-      ctx.beginPath();ctx.moveTo(bx,by);ctx.quadraticCurveTo(bx+Math.cos(ang)*len*0.5,by+Math.sin(ang)*len*0.5-2,bx+Math.cos(ang)*len,by+Math.sin(ang)*len-5);ctx.stroke();}}
-  // 树冠(翠绿光晕)
-  if(p>0.25){var cr=(25+p*40)*(W/400),cy=topY-cr*0.35,cx2=cx+sway*0.3;
-    var cg=ctx.createRadialGradient(cx2,cy,0,cx2,cy,cr);cg.addColorStop(0,'rgba(16,185,129,'+(0.25*Math.min(1,(p-0.25)/0.15))+')');cg.addColorStop(0.5,'rgba(16,185,129,'+(0.12*(p-0.25))+')');cg.addColorStop(1,'transparent');
-    ctx.fillStyle=cg;ctx.beginPath();ctx.arc(cx2,cy,cr,0,Math.PI*2);ctx.fill();
-    if(p>0.4){var cg2=ctx.createRadialGradient(cx2-cr*0.2,cy-cr*0.2,0,cx2-cr*0.2,cy-cr*0.2,cr*0.5);cg2.addColorStop(0,'rgba(255,107,53,'+(0.08*(p-0.4))+')');cg2.addColorStop(1,'transparent');ctx.fillStyle=cg2;ctx.beginPath();ctx.arc(cx2-cr*0.2,cy-cr*0.2,cr*0.5,0,Math.PI*2);ctx.fill();}
-    // 绿叶点
-    if(p>0.35){var lc=Math.floor(p*20);for(var i=0;i<lc;i++){var a=i*2.1+t*0.0002,d=cr*(0.2+(i%4)*0.2);var lx=cx2+Math.cos(a)*d,ly=cy+Math.sin(a)*d*0.6,ls=1.5+p*2;ctx.fillStyle='rgba(16,185,129,'+(0.3+(i%3)*0.1)+')';ctx.beginPath();ctx.arc(lx,ly,ls,0,Math.PI*2);ctx.fill();}}
-    // 开花(70%+)
-    if(p>0.65){var bl=(p-0.65)/0.35;var fc=Math.floor(3+bl*4);for(var i=0;i<fc;i++){var fa=i*1.5+0.5+t*0.0003,fd=cr*(0.3+(i%3)*0.25);var fx=cx2+Math.cos(fa)*fd,fy=cy+Math.sin(fa)*fd*0.5-5,fs=2+bl*3;for(var j=0;j<5;j++){var pa=j*Math.PI*2/5+t*0.0004;ctx.fillStyle='rgba(255,107,53,'+(0.3*bl)+')';ctx.beginPath();ctx.ellipse(fx+Math.cos(pa)*fs*0.3,fy+Math.sin(pa)*fs*0.3,fs*0.25,fs*0.4,pa,0,Math.PI*2);ctx.fill();}ctx.fillStyle='rgba(245,158,11,'+(0.5*bl)+')';ctx.beginPath();ctx.arc(fx,fy,fs*0.1,0,Math.PI*2);ctx.fill();}}
-  }
-}
-
-// ===== 浇水粒子 =====
-var WD=[];
-function drawWater(pct,t){
-  var p=Math.min(1,pct/100);if(p<0.15||p>=0.95){WD=[];return;}
-  if(Math.random()<0.15+p*0.1){WD.push({x:Math.random()*canvas.width,y:-5-Math.random()*10,vx:(Math.random()-0.5)*0.3,vy:1+Math.random()*1.5,size:1.5+Math.random()*2,hue:Math.random()>0.5?'#FF6B35':'#10B981'});}
-  var gndY=canvas.height*0.82,k=[];
-  for(var i=0;i<WD.length;i++){var d=WD[i];d.x+=d.vx;d.y+=d.vy;d.vy+=0.05;if(d.y>gndY-30)continue;
-    ctx.fillStyle=d.hue;ctx.globalAlpha=0.7;ctx.beginPath();ctx.arc(d.x,d.y,d.size,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=0.15;ctx.beginPath();ctx.arc(d.x-d.vx*3,d.y-d.vy*3,d.size*0.5,0,Math.PI*2);ctx.fill();k.push(d);}
-  WD=k;ctx.globalAlpha=1;
-}
-
-function drawTxt(pct,msg){
-  if(pct<=0)return;var p=Math.min(1,pct/100),gndY=canvas.height*0.82;
-  ctx.textAlign='center';ctx.textBaseline='top';
-  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.font='11px -apple-system,PingFang SC,sans-serif';ctx.fillText(msg||'培育中...',canvas.width*0.5,gndY+20);
-  if(pct<100){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(canvas.width*0.5-40,gndY+34,80,2);ctx.fillStyle='#10B981';ctx.fillRect(canvas.width*0.5-40,gndY+34,80*p,2);}
-  else{ctx.fillStyle='#10B981';ctx.font='13px -apple-system,PingFang SC,sans-serif';ctx.fillText('即将进入系统...',canvas.width*0.5,gndY+20);}
-}
-
-function drawIntroP(t){
-  for(var i=0;i<particles.length;i++){var p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=Math.sin(t*0.001+p.phase)*0.002;
-    if(p.y<-10){p.y=canvas.height+10;p.x=Math.random()*canvas.width;}if(p.x<-10||p.x>canvas.width+10)p.vx*=-1;
-    var pa=p.alpha*Math.min(1,(t/1000)/2);ctx.globalAlpha=pa;ctx.fillStyle='hsl('+p.hue+',80%,70%)';ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
-    ctx.shadowColor='hsl('+p.hue+',80%,70%)';ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;}
-  ctx.globalAlpha=1;
-}
-
-var COMPLETE_TIME=0;
-
-function render(t){
-  POLY=t*0.001;
-  if(!initCanvasSafe()){requestAnimationFrame(render);return;}
-  var raw=healProgress,sp=smoothPct(raw)*100;
-  drawBg(sp,t);drawTree(sp,t);drawWater(sp,t);
-  if(MODE==='healing')drawTxt(raw,healMessage);
-  if(MODE==='complete'){COMPLETE_TIME||(COMPLETE_TIME=t);var cp=Math.min(1,(t-COMPLETE_TIME)/1000);if(cp>0){for(var i=0;i<6;i++){var cw=1+Math.sin(t*0.002+i)*2,crx=canvas.width*0.5+(Math.random()-0.5)*50;ctx.fillStyle='rgba(255,200,100,'+(0.03+Math.sin(t*0.001+i)*0.02)*cp+')';ctx.fillRect(crx-0.5,canvas.height*0.05,cw,canvas.height*0.3+Math.random()*canvas.height*0.2);}}}
-  if(MODE==='intro'||MODE==='idle'){drawIntroP(t);var ie=t/1000;if(ie>5&&!cardShown){cardShown=true;document.getElementById('mainCard').classList.add('show');setTimeout(function(){var el=document.getElementById('brandTitle');if(el)el.classList.add('glow');},1200);urlPromise=fetchTunnelUrl();}if(ie>12){var ft=(ie-12)/0.8;if(ft>=1){canvas.style.display='none';document.body.style.background='#f5f2ed';document.body.style.overflow='auto';document.body.style.minHeight='100vh';MODE='idle';return;}canvas.style.opacity=1-ft;}}
-  requestAnimationFrame(render);
-}
-
-// ===== PWA =====
-var deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;document.getElementById('pwaArea').style.display='block';});
-window.addEventListener('appinstalled',function(){document.getElementById('pwaBtn').textContent='✅ 已安装';document.getElementById('pwaBtn').className='pwa-btn installed';});
-function installPWA(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(function(r){if(r.outcome==='accepted')console.log('PWA installed');deferredPrompt=null;});}else{alert('请在浏览器菜单中点击「添加到主屏幕」');}}
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/lebacenter/sw.js').catch(function(){});});}
-
-// ===== URL & 自愈 =====
-function fetchTunnelUrl(){return fetch(URL_JSON+'?t='+Date.now()).then(function(r){return r.json();}).then(function(d){return d.url||'';}).catch(function(){return '';});}
-
-btn.addEventListener('click',function(e){
+btn.addEventListener('click', function(e){
   e.preventDefault();
-  btn.textContent='🌱 准备种树...';
-  btn.style.pointerEvents='none';
-  MODE='healing';
-  canvas.style.display='block';canvas.style.opacity=1;
-  document.body.style.background='#121016';document.body.style.overflow='hidden';
-  var card=document.getElementById('mainCard');
-  card.classList.remove('show');
-  card.style.transition='opacity 0.4s ease, transform 0.6s cubic-bezier(0.34,1.56,0.64,1)';
-  card.style.opacity='0';
-  card.style.transform='translateY(60px) scale(0.85)';
-  card.style.pointerEvents='none';
-  // 确保卡片彻底隐藏不遮挡canvas
-  setTimeout(function(){if(card.style.opacity==='0')card.style.display='none';},500);
-  (urlPromise||fetchTunnelUrl()).then(function(url){
-    if(url){target=url+'/gateway/';baseUrl=url;btn.setAttribute('href',target);}
-    else{target=btn.getAttribute('href')||target;baseUrl=target.replace('/gateway/','');}
-    healProgress=5;healMessage='正在培育种子...';doHeal();
-  }).catch(function(){
-    target=btn.getAttribute('href')||target;baseUrl=target.replace('/gateway/','');doHeal();
-  });
+  btn.textContent = '⏳ 正在连接...';
+  btn.classList.add('loading');
+  errEl.textContent = '';
+  var ctrl = new AbortController();
+  setTimeout(function(){ctrl.abort();}, 10000);
+  fetchTunnelUrl()
+    .then(function(url){
+      if(!url || url.length<5){
+        throw new Error('未获取到有效地址');
+      }
+      var gateway = url+'/gateway/';
+      btn.textContent = '🔄 跳转中...';
+      // 直接跳转,由浏览器处理连接失败的情况
+      window.location.href = gateway;
+    })
+    .catch(function(err){
+      btn.textContent = '进入系统';
+      btn.classList.remove('loading');
+      errEl.textContent = '⚠️ 系统暂时不可达，请稍后再试';
+      console.error('入口跳转失败:', err);
+    });
 });
 
-// ===== 验证锁:永不跳404 =====
-// 核心原则:验证通过才跳转,不通过就保持树动画循环,永远不跳到404
-var VERIFY_URL = '';        // 当前要验证的目标URL
-var VERIFY_RETRIES = 0;     // 验证重试次数
-var VERIFY_MAX_INFINITE = true; // 无限重试,永不放弃
-
-function doHeal(){
-  healProgress=3;healMessage='🌱 种子入土...';
-  // 尝试自愈API(快速通道)
-  fetch(baseUrl+'/api/heal',{method:'POST',signal:AbortSignal.timeout(8000)})
-    .then(function(r){return r.json().catch(function(){return {};});})
-    .then(function(d){
-      if(d&&d.ok){
-        healProgress=8;healMessage='已收到自愈指令';
-        setTimeout(startRepairLoop,1500);
-      }else{
-        setTimeout(startAutoProgress,1000);
-      }
-    })
-    .catch(function(){setTimeout(startAutoProgress,1000);});
-}
-
-// ===== 修复进度轮询(后端API > 树长高) =====
-function startRepairLoop(){
-  if(healProgress>=95){startVerifyGate();return;}
-  fetch(baseUrl+'/api/heal-status?t='+Date.now(),{signal:AbortSignal.timeout(5000)})
-    .then(function(r){return r.json().catch(function(){return {};});})
-    .then(function(d){
-      if(d&&typeof d.progress==='number'&&d.progress>0){
-        healProgress=Math.max(healProgress,Math.min(d.progress,94));
-        healMessage=d.message||'修复中...';
-        if(d.progress>=100){healProgress=95;startVerifyGate();return;}
-        setTimeout(startRepairLoop,1500);
-      }else{
-        setTimeout(startAutoProgress,0);
-      }
-    })
-    .catch(function(){setTimeout(startAutoProgress,0);});
-}
-
-// ===== 自动进度(后端不可达时的降级) =====
-var AUTO_STEP=0;
-function startAutoProgress(){
-  AUTO_STEP++;
-  healProgress=Math.min(80,5+AUTO_STEP*12);
-  var msgs=['正在定位隧道...','发现公网地址','正在验证连接...','更新入口配置...','推送CDN更新...'];
-  healMessage=msgs[Math.min(AUTO_STEP-1,msgs.length-1)]||'修复中...';
-  if(AUTO_STEP<7){
-    setTimeout(startAutoProgress,2500);
-  }else{
-    healProgress=85;healMessage='等待CDN生效...';
-    setTimeout(startAutoProgress2,3000);
-  }
-}
-
-function startAutoProgress2(){
-  AUTO_STEP++;
-  healProgress=Math.min(90,85+(AUTO_STEP-7)*3);
-  if(AUTO_STEP<12){
-    setTimeout(startAutoProgress2,3000);
-  }else{
-    startVerifyGate();
-  }
-}
-
-// ===== 验证门禁(核心!不通过不跳转) =====
-function fetchHealth(url){
-  return fetch(url+'/api/health',{method:'GET',mode:'cors',signal:AbortSignal.timeout(8000)})
-    .then(function(r){
-      if(r.status!==200)throw new Error('status '+r.status);
-      return r.json();
-    })
-    .then(function(d){
-      if(!d||d.service!=='leba-gateway')throw new Error('not gateway');
-      return true;
+// ===== PWA =====
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();deferredPrompt=e;document.getElementById('pwaArea').style.display='block';
+});
+window.addEventListener('appinstalled',function(){
+  document.getElementById('pwaBtn').textContent='✅ 已安装';
+  document.getElementById('pwaBtn').className='pwa-btn installed';
+});
+function installPWA(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(r){
+      if(r.outcome==='accepted')console.log('PWA installed');
+      deferredPrompt=null;
     });
+  }else alert('请在浏览器菜单中点击「添加到主屏幕」');
 }
-
-// ===== 验证门禁 v2(用/api/health + CORS真实读状态码) =====
-function startVerifyGate(){
-  VERIFY_RETRIES=0;
-  healProgress=92;healMessage='🔄 获取最新公网地址...';
-  doVerifyGate();
-}
-
-function doVerifyGate(){
-  healProgress=93;
-  // Step 1: 从GP读取url.json获取最新URL
-  fetchTunnelUrl().then(function(nu){
-    if(nu&&nu.length>5){
-      baseUrl=nu;
-      target=nu+'/gateway/';
-    }
-    if(!baseUrl||baseUrl.length<5){
-      healProgress=90;healMessage='⚠️ 未获取到地址';
-      VERIFY_RETRIES++;
-      setTimeout(startVerifyGate,Math.min(30000,3000+VERIFY_RETRIES*2000));
-      return;
-    }
-    // Step 2: 用/api/health验证(CORS模式,能读真实状态码和响应体)
-    healProgress=94;healMessage='🔍 验证1/1:网关连通性...';
-    fetchHealth(baseUrl).then(function(){
-      healProgress=98;healMessage='✅ 验证通过!';
-      MODE='complete';
-      doFinalConfirm();
-    }).catch(function(){
-      // 真正的网络不通或状态码不对 > 保持动画继续重试
-      healProgress=85;healMessage='🌱 通道检测中,继续培育...';
-      VERIFY_RETRIES++;
-      var delay=Math.min(30000,3000+VERIFY_RETRIES*VERIFY_RETRIES*2000);
-      setTimeout(startVerifyGate,delay);
-    });
-  }).catch(function(){
-    // url.json读不到,重试
-    healProgress=90;healMessage='⏳ 读取入口配置...';
-    VERIFY_RETRIES++;
-    setTimeout(startVerifyGate,5000);
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/lebacenter/sw.js').catch(function(){});
   });
 }
-
-function doFinalConfirm(){
-  var finalUrl=target||(baseUrl?baseUrl+'/gateway/':'');
-  if(!finalUrl||finalUrl===''){
-    healProgress=85;healMessage='⚠️ 重新获取地址...';
-    MODE='healing';
-    setTimeout(startVerifyGate,5000);
-    return;
-  }
-  // 最后一次快速验证(用/api/health确认网关仍在运行)
-  fetchHealth(baseUrl).then(function(){
-    healProgress=100;healMessage='✅ 准备就绪!';
-    setTimeout(function(){window.location.href=finalUrl;},1500);
-  }).catch(function(){
-    healProgress=85;healMessage='🌱 重新扎根...';
-    MODE='healing';
-    VERIFY_RETRIES++;
-    setTimeout(startVerifyGate,5000);
-  });
-}
-
-
-// GO!
-requestAnimationFrame(render);
 </script>
 </body>
 </html>
