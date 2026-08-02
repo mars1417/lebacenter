@@ -122,6 +122,24 @@ body{
 // ===== 🍎 下拉刷新 =====
 (function(){var b=document.body;if(!('ontouchstart'in window))return;var i=document.createElement('div');i.id='ptr-entry';i.innerHTML='<div style=\"width:22px;height:22px;border:3px solid rgba(71,133,168,0.15);border-top-color:#4785a8;border-radius:50%;margin-bottom:2px;\" class=\"ptr-spin\"></div><div style=\"font-size:11px;color:#86868b;\" class=\"ptr-text\">↓ 下拉刷新</div>';b.insertBefore(i,b.firstChild);var s=document.createElement('style');s.textContent='#ptr-entry{position:fixed;top:-60px;left:0;right:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:60px;padding-bottom:8px;background:rgba(245,245,247,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transition:top .35s cubic-bezier(0.25,0.1,0.25,1);pointer-events:none;}#ptr-entry.show{top:0;}#ptr-entry.ready .ptr-text{color:#4785a8;}#ptr-entry:not(.ready) .ptr-spin{animation:none;border-top-color:#4785a8!important;}#ptr-entry.refreshing .ptr-text{color:#4785a8;}@keyframes ptrSpin{to{transform:rotate(360deg);}}.ptr-spin{animation:ptrSpin .6s linear infinite;}';document.head.appendChild(s);var sy=0,pl=false;b.addEventListener('touchstart',function(e){var st=window.pageYOffset||document.documentElement.scrollTop||b.scrollTop||0;if(st>0){sy=0;return;}sy=e.touches[0].clientY;pl=true;i.classList.remove('ready','refreshing');i.classList.add('show');i.querySelector('.ptr-text').textContent='↓ 下拉刷新';},{passive:true});b.addEventListener('touchmove',function(e){if(!pl||!sy)return;var y=e.touches[0].clientY,md=y-sy;if(md<0){i.classList.remove('show','ready');pl=false;return;}i.style.top=Math.min(0,-60+md*0.4)+'px';if(md>80&&!i.classList.contains('ready')){i.classList.add('ready');i.querySelector('.ptr-text').textContent='松开刷新';}else if(md<=80){i.classList.remove('ready');i.querySelector('.ptr-text').textContent='↓ 下拉刷新';}},{passive:true});b.addEventListener('touchend',function(){if(!pl)return;pl=false;if(i.classList.contains('ready')){i.classList.remove('ready');i.classList.add('refreshing');i.querySelector('.ptr-text').textContent='刷新中…';i.style.top='0px';window.location.reload();}else{i.classList.remove('show');i.style.top='-60px';}sy=0;},{passive:true});})();
 
+// ===== 🎬 预加载优化 2026-08-03: 页面打开即后台下载视频+url.json，点击秒开 =====
+(function(){
+  // 1) 预下载开场视频（按设备选源），进入系统时浏览器已缓存 → 播放零等待
+  var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
+  var v = document.getElementById('introVideo');
+  if(v){
+    v.preload = 'auto';
+    v.src = isMobile ? '/lebacenter/leba_intro_v.mp4' : '/lebacenter/leba_intro_h.mp4';
+    v.load();
+  }
+  // 2) 预拉取url.json，点击时直接用缓存结果（避免1.5s+网络等待）
+  window._cachedTunnelUrl = null;
+  fetch('/lebacenter/url.json?t='+Date.now(), {cache:'no-store'})
+    .then(function(r){return r.ok ? r.json() : null;})
+    .then(function(d){ if(d && d.url && d.url.length>5) window._cachedTunnelUrl = d.url; })
+    .catch(function(){});
+})();
+
 // ===== 入口: 点按钮→检测→触发自愈→更新url.json→强刷CDN→跳转 =====
 var URL_JSON = '/lebacenter/url.json';
 var btn = document.getElementById('enterBtn');
@@ -140,6 +158,8 @@ function setProgress(pct, msg){
 }
 
 function fetchTunnelUrl(){
+  // 优先用预拉取的缓存，避免重复网络等待
+  if(window._cachedTunnelUrl) return Promise.resolve(window._cachedTunnelUrl);
   return fetch(URL_JSON+'?t='+Date.now())
     .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(function(d){if(!d||!d.url||d.url.length<5)throw new Error('无效地址');return d.url;});
@@ -173,9 +193,8 @@ function playIntroThenGo(target){
     introDone = true;
     window.location.href = target;
   }
-  // 设备自适应选源：手机竖屏 / 电脑横屏
-  v.src = pickIntroVideo();
-  v.load();
+  // 设备自适应选源（预加载已设置src，这里确保有源）
+  if(!v.src){ v.src = pickIntroVideo(); v.load(); }
   // 播放成功 → 等ended；失败/不可用 → 直接跳
   ov.style.display = 'block';
   v.play().catch(function(){ go(); });
