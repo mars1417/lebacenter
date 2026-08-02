@@ -92,7 +92,7 @@ body{
 <!-- 🎬 开场动画层（点进入系统后播放） -->
 <div id="introOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0A0A0F;">
   <video id="introVideo" autoplay muted playsinline preload="auto" style="width:100%;height:100%;object-fit:cover;">
-    <source src="/lebacenter/leba_intro.mp4" type="video/mp4">
+    <!-- 设备自适应：手机→竖屏 / 电脑→横屏（JS动态设置src） -->
   </video>
   <button id="introSkip" onclick="skipIntro()" style="position:fixed;bottom:28px;right:28px;z-index:10;padding:10px 26px;border-radius:999px;border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.08);color:#fff;font-size:15px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:2px;font-family:'PingFang SC','Hiragino Sans GB',sans-serif;">跳 过  ›</button>
 </div>
@@ -157,8 +157,12 @@ function doRedirect(baseUrl){
   }, 400);
 }
 
-// 🎬 开场动画：全屏播放6秒 → 播完/跳过/兜底 → 进登录页
+// 🎬 开场动画：按设备选视频源（手机→竖屏 / 电脑→横屏）→ 播完/跳过/兜底 → 进登录页
 var introDone = false;
+function pickIntroVideo(){
+  var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
+  return isMobile ? '/lebacenter/leba_intro_v.mp4' : '/lebacenter/leba_intro_h.mp4';
+}
 function playIntroThenGo(target){
   window._introTarget = target;
   var ov = document.getElementById('introOverlay');
@@ -169,12 +173,15 @@ function playIntroThenGo(target){
     introDone = true;
     window.location.href = target;
   }
+  // 设备自适应选源：手机竖屏 / 电脑横屏
+  v.src = pickIntroVideo();
+  v.load();
   // 播放成功 → 等ended；失败/不可用 → 直接跳
   ov.style.display = 'block';
   v.play().catch(function(){ go(); });
   v.onended = go;
   v.onerror = go;
-  // 兜底：6.5秒内必须跳转（防卡加载）
+  // 兜底：10.5秒内必须跳转（防卡加载）
   setTimeout(go, 10500);
 }
 function skipIntro(){
