@@ -89,6 +89,13 @@ body{
 </style>
 </head>
 <body>
+<!-- 🎬 开场动画层（点进入系统后播放） -->
+<div id="introOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0A0A0F;">
+  <video id="introVideo" autoplay muted playsinline preload="auto" style="width:100%;height:100%;object-fit:cover;">
+    <source src="/lebacenter/leba_intro.mp4" type="video/mp4">
+  </video>
+  <button id="introSkip" onclick="skipIntro()" style="position:fixed;bottom:28px;right:28px;z-index:10;padding:10px 26px;border-radius:999px;border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.08);color:#fff;font-size:15px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:2px;font-family:'PingFang SC','Hiragino Sans GB',sans-serif;">跳 过  ›</button>
+</div>
 <div class="card">
   <div class="badge-wrap">
     <div class="badge-glass"><img class="badge-logo" src="/lebacenter/logo.jpg" alt="乐吧公益中心"></div>
@@ -145,8 +152,38 @@ function doRedirect(baseUrl){
   progText.classList.add('done');
   progPct.textContent = '100%';
   setTimeout(function(){
-    window.location.href = (baseUrl||'').replace(/\/+$/,'') + '/gateway/';
+    var target = (baseUrl||'').replace(/\/+$/,'') + '/gateway/';
+    playIntroThenGo(target);
   }, 400);
+}
+
+// 🎬 开场动画：全屏播放6秒 → 播完/跳过/兜底 → 进登录页
+var introDone = false;
+function playIntroThenGo(target){
+  window._introTarget = target;
+  var ov = document.getElementById('introOverlay');
+  var v = document.getElementById('introVideo');
+  if(!ov || !v){ window.location.href = target; return; }
+  function go(){
+    if(introDone) return;
+    introDone = true;
+    window.location.href = target;
+  }
+  // 播放成功 → 等ended；失败/不可用 → 直接跳
+  ov.style.display = 'block';
+  v.play().catch(function(){ go(); });
+  v.onended = go;
+  v.onerror = go;
+  // 兜底：6.5秒内必须跳转（防卡加载）
+  setTimeout(go, 6500);
+}
+function skipIntro(){
+  var v = document.getElementById('introVideo');
+  var target = (window._introTarget || '');
+  if(target){ window.location.href = target; return; }
+  // 没存target时直接按原逻辑走：跳回网关
+  if(v) v.pause();
+  window.location.href = '/gateway/';
 }
 
 function pollHealStatus(baseUrl){
