@@ -175,7 +175,7 @@ function playIntroThenGo(target){
   v.onended = go;
   v.onerror = go;
   // 兜底：6.5秒内必须跳转（防卡加载）
-  setTimeout(go, 6500);
+  setTimeout(go, 10500);
 }
 function skipIntro(){
   var v = document.getElementById('introVideo');
