@@ -196,10 +196,10 @@ function pickIntroVideo(){
     // appassets 协议会被 APK 的 shouldInterceptRequest 拦截 → 从内置assets读取
     return 'https://appassets.androidplatform.net/assets/intro/leba_intro_v.mp4';
   }
-  // 网页版/回退源用720p压缩版(~1.7MB)！2026-08-03 v42修复: 之前用4MB 1080p高清版→国内GP慢→卡死。
-  //   手机端用 leba_intro_v_web.mp4 (720p 1.26Mbps Constrained Baseline 解码最友好)
-  var file = isMobile ? 'leba_intro_v_web.mp4' : 'leba_intro_h.mp4';
-  return 'https://mars1417.github.io/lebacenter/' + file;
+  // 网页版/回退源：jsDelivr CDN(国内节点) + 540p超小版(870KB)！
+  // 2026-08-03 v43修复: 之前4MB 1080p→GP直连12s+卡死；720p→jsDelivr 4.7s。540p最快。
+  var file = isMobile ? 'leba_intro_v_web2.mp4' : 'leba_intro_h.mp4';
+  return 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
 }
 function playIntroThenGo(target){
   window._introTarget = target;
@@ -271,23 +271,28 @@ function playIntroThenGo(target){
     v.style.opacity = '0';  // 淡出
     setTimeout(go, 600);    // 等淡出完成再跳
   };
-  // 本地视频加载失败（旧APK无内置视频）→ 回退CDN再试一次，仍失败才跳
-  var cdnTried = false;
+  // 视频加载失败 → 三级回退：①jsDelivr 540p → ②GP直连540p → ③go()跳转
+  var cdnTried = false, gpTried = false;
   v.onerror = function(){
+    var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
+    var file = isMobile ? 'leba_intro_v_web2.mp4' : 'leba_intro_h.mp4';
     if(!cdnTried){
       cdnTried = true;
-      var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
-      var isWebView = window.__isLebaApk === true || /[?&]apk=1/.test(location.search);
-      if(isWebView){
-        // 旧APK无内置视频 → 回退720p压缩版（2026-08-03 v42: 之前用4MB高清版卡死，改web压缩版）
-        var file = isMobile ? 'leba_intro_v_web.mp4' : 'leba_intro_h.mp4';
-        v.src = 'https://mars1417.github.io/lebacenter/' + file;
-        v.load();
-        started = false;
-        v.addEventListener('canplay', function(){ onLoadedData(); });
-        setTimeout(function(){ if(!started && !introDone) onLoadedData(); }, 800);
-        return;
-      }
+      v.src = 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
+      v.load();
+      started = false;
+      v.addEventListener('canplay', function(){ onLoadedData(); });
+      setTimeout(function(){ if(!started && !introDone) onLoadedData(); }, 800);
+      return;
+    }
+    if(!gpTried){
+      gpTried = true;
+      v.src = 'https://mars1417.github.io/lebacenter/' + file;
+      v.load();
+      started = false;
+      v.addEventListener('canplay', function(){ onLoadedData(); });
+      setTimeout(function(){ if(!started && !introDone) onLoadedData(); }, 800);
+      return;
     }
     go();
   };
