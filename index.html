@@ -210,27 +210,67 @@ function playIntroThenGo(target){
     introDone = true;
     window.location.href = target;
   }
-  // 🎬 2026-08-03 v38: 播放时【强制】重新选源+加载。
-  // 修复APK第二次没动画：预加载可能在__isLebaApk标记注入前执行→选错CDN源，
-  // 旧代码`if(!v.src)`因src已有值而跳过重选→动画消失。点击时标记必已注入，强制重选100%正确。
+  // 🎬 v40: 播放时【强制】重新选源+加载（修复APK第二次没动画：预加载可能在标记注入前选错源）
   v.src = pickIntroVideo();
   v.load();
-  // 2026-08-03 v38: 慢放0.2倍（10s→12.5s），更从容的入场节奏
+  // 慢放0.2倍（10s→12.5s），更从容的入场节奏
   try { v.playbackRate = 0.8; } catch(e){}
-  // 2026-08-03 v38: 渐入渐出——淡入0.8s，结束前淡出0.8s
+  // 渐入渐出——淡入0.8s，结束前淡出0.8s
   v.style.opacity = '0';
   v.style.transition = 'opacity 0.8s ease';
   v.style.willChange = 'opacity';
-  // 播放成功 → 淡入 + 等ended；失败/不可用 → 直接跳
   ov.style.display = 'block';
-  v.play().then(function(){
-    v.style.opacity = '1';
-  }).catch(function(){ go(); });
+
+  // 🔑 v40核心修复：不再依赖 play() 立即成功（Android WebView中视频未就绪时 play() 会reject，
+  //    旧代码catch直接go()→动画永远不播）。改为：等待canplay事件→播放→失败重试3次→才跳转。
+  var started = false;
+  var playTries = 0;
+  function attemptPlay(){
+    if(introDone) return;
+    var p;
+    try { p = v.play(); } catch(e){ p = Promise.reject(e); }
+    if(p && p.catch){
+      p.then(function(){
+        v.style.opacity = '1';  // 播放成功 → 淡入
+      }).catch(function(){
+        // 播放失败：视频可能还没就绪，500ms后重试（最多3次）→ 仍失败才跳
+        playTries++;
+        if(playTries < 3){
+          setTimeout(attemptPlay, 500);
+        } else {
+          go();
+        }
+      });
+    } else {
+      v.style.opacity = '1';
+    }
+  }
+  function onCanPlay(){
+    if(started || introDone) return;
+    started = true;
+    v.removeEventListener('canplay', onCanPlay);
+    v.removeEventListener('loadeddata', onLoadedData);
+    attemptPlay();
+  }
+  function onLoadedData(){
+    if(started || introDone) return;
+    started = true;
+    v.removeEventListener('canplay', onCanPlay);
+    v.removeEventListener('loadeddata', onLoadedData);
+    attemptPlay();
+  }
+  v.addEventListener('canplay', onCanPlay);
+  v.addEventListener('loadeddata', onLoadedData);
+  // 兜底：1秒后视频还没就绪也直接尝试播放（可能是缓存视频，事件不再触发）
+  setTimeout(function(){
+    if(!started && !introDone){ onLoadedData(); }
+  }, 1000);
+
   v.onended = function(){
     v.style.opacity = '0';  // 淡出
     setTimeout(go, 600);    // 等淡出完成再跳
   };
-  // 2026-08-03 本地视频加载失败（旧APK无内置视频）→ 回退CDN再试一次，仍失败才跳
+  // 本地视频加载失败（旧APK无内置视频）→ 回退CDN再试一次，仍失败才跳
   var cdnTried = false;
   v.onerror = function(){
     if(!cdnTried){
@@ -242,7 +282,9 @@ function playIntroThenGo(target){
         var file = isMobile ? 'leba_intro_v.mp4' : 'leba_intro_h.mp4';
         v.src = 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
         v.load();
-        v.play().then(function(){ v.style.opacity = '1'; }).catch(function(){ go(); });
+        started = false;
+        v.addEventListener('canplay', function(){ onLoadedData(); });
+        setTimeout(function(){ if(!started && !introDone) onLoadedData(); }, 800);
         return;
       }
     }
