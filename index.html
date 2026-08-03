@@ -125,11 +125,10 @@ body{
 // ===== 🎬 预加载优化 2026-08-03: 页面打开即后台下载视频+url.json，点击秒开 =====
 (function(){
   // 1) 预下载开场视频（按设备选源），进入系统时浏览器已缓存 → 播放零等待
-  var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
   var v = document.getElementById('introVideo');
   if(v){
     v.preload = 'auto';
-    v.src = isMobile ? '/lebacenter/leba_intro_v.mp4' : '/lebacenter/leba_intro_h.mp4';
+    v.src = pickIntroVideo();
     v.load();
   }
   // 2) 预拉取url.json，点击时直接用缓存结果（避免1.5s+网络等待）
@@ -181,6 +180,13 @@ function doRedirect(baseUrl){
 var introDone = false;
 function pickIntroVideo(){
   var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
+  // APK/WebView 检测：Android WebView UA 包含 "Version/4.0" 或 "wv" 标记
+  var isWebView = /wv|WebView|Version\/4\.0|leba/i.test(navigator.userAgent) && /Android/i.test(navigator.userAgent);
+  if (isWebView) {
+    // APK内WebView：优先本地assets高清视频（零下载零卡顿），失败回退CDN
+    // appassets 协议会被 APK 的 shouldInterceptRequest 拦截 → 从内置assets读取
+    return 'https://appassets.androidplatform.net/assets/intro/leba_intro_v.mp4';
+  }
   return isMobile ? '/lebacenter/leba_intro_v.mp4' : '/lebacenter/leba_intro_h.mp4';
 }
 function playIntroThenGo(target){
@@ -199,7 +205,22 @@ function playIntroThenGo(target){
   ov.style.display = 'block';
   v.play().catch(function(){ go(); });
   v.onended = go;
-  v.onerror = go;
+  // 2026-08-03 本地视频加载失败（旧APK无内置视频）→ 回退CDN再试一次，仍失败才跳
+  var cdnTried = false;
+  v.onerror = function(){
+    if(!cdnTried){
+      cdnTried = true;
+      var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
+      var isWebView = /wv|WebView|Version\/4\.0|leba/i.test(navigator.userAgent) && /Android/i.test(navigator.userAgent);
+      if(isWebView){
+        v.src = isMobile ? 'https://mars1417.github.io/lebacenter/leba_intro_v_apk.mp4' : 'https://mars1417.github.io/lebacenter/leba_intro_h_apk.mp4';
+        v.load();
+        v.play().catch(function(){ go(); });
+        return;
+      }
+    }
+    go();
+  };
   // 兜底：10.5秒内必须跳转（防卡加载）
   setTimeout(go, 10500);
 }
