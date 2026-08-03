@@ -125,12 +125,19 @@ body{
 // ===== 🎬 预加载优化 2026-08-03: 页面打开即后台下载视频+url.json，点击秒开 =====
 (function(){
   // 1) 预下载开场视频（按设备选源），进入系统时浏览器已缓存 → 播放零等待
-  var v = document.getElementById('introVideo');
-  if(v){
-    v.preload = 'auto';
-    v.src = pickIntroVideo();
-    v.load();
-  }
+  // APK的__isLebaApk标记在onPageFinished注入，这里轮询等待（最多1.5s）确保选对源
+  var tries = 0;
+  (function waitForApkFlag(){
+    var v = document.getElementById('introVideo');
+    if(v && (window.__isLebaApk !== undefined || tries >= 15)){
+      v.preload = 'auto';
+      v.src = pickIntroVideo();
+      v.load();
+      return;
+    }
+    tries++;
+    setTimeout(waitForApkFlag, 100);
+  })();
   // 2) 预拉取url.json，点击时直接用缓存结果（避免1.5s+网络等待）
   window._cachedTunnelUrl = null;
   fetch('/lebacenter/url.json?t='+Date.now(), {cache:'no-store'})
@@ -180,8 +187,9 @@ function doRedirect(baseUrl){
 var introDone = false;
 function pickIntroVideo(){
   var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
-  // APK/WebView 检测：Android WebView UA 包含 "Version/4.0" 或 "wv" 标记
-  var isWebView = /wv|WebView|Version\/4\.0|leba/i.test(navigator.userAgent) && /Android/i.test(navigator.userAgent);
+  // APK检测（2026-08-03修复）：只用APK注入的专属标记，不用UA猜！
+  // ⚠️ 不能用 /Version\/4\.0/ 检测——微信安卓版UA也含Version/4.0，会被误判成APK
+  var isWebView = window.__isLebaApk === true;
   if (isWebView) {
     // APK内WebView：优先本地assets高清视频（零下载零卡顿），失败回退CDN
     // appassets 协议会被 APK 的 shouldInterceptRequest 拦截 → 从内置assets读取
@@ -211,7 +219,7 @@ function playIntroThenGo(target){
     if(!cdnTried){
       cdnTried = true;
       var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
-      var isWebView = /wv|WebView|Version\/4\.0|leba/i.test(navigator.userAgent) && /Android/i.test(navigator.userAgent);
+      var isWebView = window.__isLebaApk === true;
       if(isWebView){
         v.src = isMobile ? 'https://mars1417.github.io/lebacenter/leba_intro_v_apk.mp4' : 'https://mars1417.github.io/lebacenter/leba_intro_h_apk.mp4';
         v.load();
