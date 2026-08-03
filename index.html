@@ -211,21 +211,18 @@ function playIntroThenGo(target){
     introDone = true;
     window.location.href = target;
   }
-  // 🎬 v40: 播放时【强制】重新选源+加载（修复APK第二次没动画：预加载可能在标记注入前选错源）
+  // 🎬 v45【Boss定】视频必须放完(ended)→淡出→才跳转！移除13.5s强制跳、移除play失败3次就go
   v.src = pickIntroVideo();
   v.load();
-  // 慢放0.2倍（10s→12.5s），更从容的入场节奏
+  // 慢放0.8倍（10s→12.5s），更从容的入场节奏
   try { v.playbackRate = 0.8; } catch(e){}
-  // 渐入渐出——淡入0.8s，结束前淡出0.8s
+  // 渐入渐出——淡入0.8s，播完淡出0.8s
   v.style.opacity = '0';
   v.style.transition = 'opacity 0.8s ease';
   v.style.willChange = 'opacity';
   ov.style.display = 'block';
 
-  // 🔑 v40核心修复：不再依赖 play() 立即成功（Android WebView中视频未就绪时 play() 会reject，
-  //    旧代码catch直接go()→动画永远不播）。改为：等待canplay事件→播放→失败重试3次→才跳转。
   var started = false;
-  var playTries = 0;
   function attemptPlay(){
     if(introDone) return;
     var p;
@@ -234,13 +231,8 @@ function playIntroThenGo(target){
       p.then(function(){
         v.style.opacity = '1';  // 播放成功 → 淡入
       }).catch(function(){
-        // 播放失败：视频可能还没就绪，500ms后重试（最多3次）→ 仍失败才跳
-        playTries++;
-        if(playTries < 3){
-          setTimeout(attemptPlay, 500);
-        } else {
-          go();
-        }
+        // ⚠️ v45: play失败【不跳转】！只是视频未就绪，1s后重试等待就绪
+        setTimeout(attemptPlay, 1000);
       });
     } else {
       v.style.opacity = '1';
@@ -262,16 +254,17 @@ function playIntroThenGo(target){
   }
   v.addEventListener('canplay', onCanPlay);
   v.addEventListener('loadeddata', onLoadedData);
-  // 兜底：1秒后视频还没就绪也直接尝试播放（可能是缓存视频，事件不再触发）
+  // 兜底就绪：1.5秒后视频还没就绪也直接尝试播放（可能是缓存视频，事件不再触发）
   setTimeout(function(){
     if(!started && !introDone){ onLoadedData(); }
-  }, 1000);
+  }, 1500);
 
+  // 🔑 v45【Boss定】视频放完(ended) → 淡出 → 跳转，不放完不到下一步
   v.onended = function(){
     v.style.opacity = '0';  // 淡出
     setTimeout(go, 600);    // 等淡出完成再跳
   };
-  // 视频加载失败 → 三级回退：①jsDelivr 540p → ②GP直连540p → ③go()跳转
+  // 视频加载失败 → 三级回退：①jsDelivr → ②GP直连 → ③go()（本地都失败才跳）
   var cdnTried = false, gpTried = false;
   v.onerror = function(){
     var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
@@ -294,10 +287,11 @@ function playIntroThenGo(target){
       setTimeout(function(){ if(!started && !introDone) onLoadedData(); }, 800);
       return;
     }
-    go();
+    go();  // 所有源都失败才跳（v45: 极端情况才跳，不再13.5s硬跳）
   };
-  // 兜底：13.5秒内必须跳转（10s×0.8慢放=12.5s + 淡出0.8s + 余量）
-  setTimeout(go, 13500);
+  // v45: 极端防死锁兜底——本地视频正常12.5s播完+淡出0.8s≈13.5s内必然ended。
+  //   20s仅防止视频文件损坏/解码器异常导致永不ended时卡死（正常永远不会触发）
+  setTimeout(go, 20000);
 }
 function skipIntro(){
   var v = document.getElementById('introVideo');
