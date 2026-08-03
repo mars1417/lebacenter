@@ -91,7 +91,7 @@ body{
 <body>
 <!-- 🎬 开场动画层（点进入系统后播放） -->
 <div id="introOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0A0A0F;">
-  <video id="introVideo" autoplay muted playsinline preload="auto" style="width:100%;height:100%;object-fit:cover;">
+  <video id="introVideo" autoplay muted playsinline preload="auto" style="width:100%;height:100%;object-fit:cover;-webkit-transform:translateZ(0);transform:translateZ(0);">
     <!-- 设备自适应：手机→竖屏 / 电脑→横屏（JS动态设置src） -->
   </video>
   <button id="introSkip" onclick="skipIntro()" style="position:fixed;bottom:28px;right:28px;z-index:10;padding:10px 26px;border-radius:999px;border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.08);color:#fff;font-size:15px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:2px;font-family:'PingFang SC','Hiragino Sans GB',sans-serif;">跳 过  ›</button>
@@ -196,9 +196,10 @@ function pickIntroVideo(){
     // appassets 协议会被 APK 的 shouldInterceptRequest 拦截 → 从内置assets读取
     return 'https://appassets.androidplatform.net/assets/intro/leba_intro_v.mp4';
   }
-  // 2026-08-03: 网页版用jsDelivr CDN(国内快)加载压缩版视频(~1.5MB)，替代GitHub Pages直连(国内慢→卡顿)
+  // 网页版用jsDelivr CDN(国内快)加载压缩版视频(~1.5MB)，替代GitHub Pages直连(国内慢→卡顿)
+  // 2026-08-03 v41修复: jsDelivr的v.mp4曾返回000(不可用)导致回退失败→黑屏。改用GP直连(已验证200)
   var file = isMobile ? 'leba_intro_v.mp4' : 'leba_intro_h.mp4';
-  return 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
+  return 'https://mars1417.github.io/lebacenter/' + file;
 }
 function playIntroThenGo(target){
   window._introTarget = target;
@@ -278,9 +279,9 @@ function playIntroThenGo(target){
       var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
       var isWebView = window.__isLebaApk === true || /[?&]apk=1/.test(location.search);
       if(isWebView){
-        // 旧APK无内置视频 → 回退CDN压缩版（jsDelivr国内快）
+        // 旧APK无内置视频 → 回退GP直连（2026-08-03 v41: 从jsDelivr改为GP直连，jsDelivr v.mp4曾000不可用）
         var file = isMobile ? 'leba_intro_v.mp4' : 'leba_intro_h.mp4';
-        v.src = 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
+        v.src = 'https://mars1417.github.io/lebacenter/' + file;
         v.load();
         started = false;
         v.addEventListener('canplay', function(){ onLoadedData(); });
