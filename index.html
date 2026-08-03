@@ -189,7 +189,8 @@ function pickIntroVideo(){
   var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
   // APK检测（2026-08-03修复）：只用APK注入的专属标记，不用UA猜！
   // ⚠️ 不能用 /Version\/4\.0/ 检测——微信安卓版UA也含Version/4.0，会被误判成APK
-  var isWebView = window.__isLebaApk === true;
+  // v38: 双保险——标记(window.__isLebaApk) + URL参数(&apk=1)。URL参数在页面加载时就可见，不依赖注入时序
+  var isWebView = window.__isLebaApk === true || /[?&]apk=1/.test(location.search);
   if (isWebView) {
     // APK内WebView：优先本地assets高清视频（零下载零卡顿），失败回退CDN
     // appassets 协议会被 APK 的 shouldInterceptRequest 拦截 → 从内置assets读取
@@ -209,32 +210,46 @@ function playIntroThenGo(target){
     introDone = true;
     window.location.href = target;
   }
-  // 设备自适应选源（预加载已设置src，这里确保有源）
-  if(!v.src){ v.src = pickIntroVideo(); v.load(); }
-  // 播放成功 → 等ended；失败/不可用 → 直接跳
+  // 🎬 2026-08-03 v38: 播放时【强制】重新选源+加载。
+  // 修复APK第二次没动画：预加载可能在__isLebaApk标记注入前执行→选错CDN源，
+  // 旧代码`if(!v.src)`因src已有值而跳过重选→动画消失。点击时标记必已注入，强制重选100%正确。
+  v.src = pickIntroVideo();
+  v.load();
+  // 2026-08-03 v38: 慢放0.2倍（10s→12.5s），更从容的入场节奏
+  try { v.playbackRate = 0.8; } catch(e){}
+  // 2026-08-03 v38: 渐入渐出——淡入0.8s，结束前淡出0.8s
+  v.style.opacity = '0';
+  v.style.transition = 'opacity 0.8s ease';
+  v.style.willChange = 'opacity';
+  // 播放成功 → 淡入 + 等ended；失败/不可用 → 直接跳
   ov.style.display = 'block';
-  v.play().catch(function(){ go(); });
-  v.onended = go;
+  v.play().then(function(){
+    v.style.opacity = '1';
+  }).catch(function(){ go(); });
+  v.onended = function(){
+    v.style.opacity = '0';  // 淡出
+    setTimeout(go, 600);    // 等淡出完成再跳
+  };
   // 2026-08-03 本地视频加载失败（旧APK无内置视频）→ 回退CDN再试一次，仍失败才跳
   var cdnTried = false;
   v.onerror = function(){
     if(!cdnTried){
       cdnTried = true;
       var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
-      var isWebView = window.__isLebaApk === true;
+      var isWebView = window.__isLebaApk === true || /[?&]apk=1/.test(location.search);
       if(isWebView){
         // 旧APK无内置视频 → 回退CDN压缩版（jsDelivr国内快）
         var file = isMobile ? 'leba_intro_v.mp4' : 'leba_intro_h.mp4';
         v.src = 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
         v.load();
-        v.play().catch(function(){ go(); });
+        v.play().then(function(){ v.style.opacity = '1'; }).catch(function(){ go(); });
         return;
       }
     }
     go();
   };
-  // 兜底：10.5秒内必须跳转（防卡加载）
-  setTimeout(go, 10500);
+  // 兜底：13.5秒内必须跳转（10s×0.8慢放=12.5s + 淡出0.8s + 余量）
+  setTimeout(go, 13500);
 }
 function skipIntro(){
   var v = document.getElementById('introVideo');
