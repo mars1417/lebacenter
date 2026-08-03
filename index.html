@@ -195,7 +195,9 @@ function pickIntroVideo(){
     // appassets 协议会被 APK 的 shouldInterceptRequest 拦截 → 从内置assets读取
     return 'https://appassets.androidplatform.net/assets/intro/leba_intro_v.mp4';
   }
-  return isMobile ? '/lebacenter/leba_intro_v.mp4' : '/lebacenter/leba_intro_h.mp4';
+  // 2026-08-03: 网页版用jsDelivr CDN(国内快)加载压缩版视频(~1.5MB)，替代GitHub Pages直连(国内慢→卡顿)
+  var file = isMobile ? 'leba_intro_v.mp4' : 'leba_intro_h.mp4';
+  return 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
 }
 function playIntroThenGo(target){
   window._introTarget = target;
@@ -221,7 +223,9 @@ function playIntroThenGo(target){
       var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
       var isWebView = window.__isLebaApk === true;
       if(isWebView){
-        v.src = isMobile ? 'https://mars1417.github.io/lebacenter/leba_intro_v_apk.mp4' : 'https://mars1417.github.io/lebacenter/leba_intro_h_apk.mp4';
+        // 旧APK无内置视频 → 回退CDN压缩版（jsDelivr国内快）
+        var file = isMobile ? 'leba_intro_v.mp4' : 'leba_intro_h.mp4';
+        v.src = 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
         v.load();
         v.play().catch(function(){ go(); });
         return;
