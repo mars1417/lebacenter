@@ -188,13 +188,15 @@ var introDone = false;
 function pickIntroVideo(){
   var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
   // APK检测（2026-08-03修复）：只用APK注入的专属标记，不用UA猜！
-  // ⚠️ 不能用 /Version\/4\.0/ 检测——微信安卓版UA也含Version/4.0，会被误判成APK
+  // ⚠️ 不能用 /Version\\/4\\.0/ 检测——微信安卓版UA也含Version/4.0，会被误判成APK
   // v38: 双保险——标记(window.__isLebaApk) + URL参数(&apk=1)。URL参数在页面加载时就可见，不依赖注入时序
   var isWebView = window.__isLebaApk === true || /[?&]apk=1/.test(location.search);
   if (isWebView) {
-    // APK内WebView：优先本地assets高清视频（零下载零卡顿），失败回退CDN
-    // appassets 协议会被 APK 的 shouldInterceptRequest 拦截 → 从内置assets读取
-    return 'https://appassets.androidplatform.net/assets/intro/leba_intro_v.mp4';
+    // v46 设备分级：MainActivity用MediaCodecList探测注入 window.__videoTier
+    //   high=1080p High 6.5MB / mid=1080p Main 2.8MB / low=720p Main 1.7MB
+    //   全部内置在APK assets/intro/，appassets协议被shouldInterceptRequest拦截→本地读取GPU硬解
+    var tier = window.__videoTier || 'mid';
+    return 'https://appassets.androidplatform.net/assets/intro/intro_' + tier + '.mp4';
   }
   // 网页版/回退源：jsDelivr CDN(国内节点) + 540p超小版(870KB)！
   // 2026-08-03 v43修复: 之前4MB 1080p→GP直连12s+卡死；720p→jsDelivr 4.7s。540p最快。
