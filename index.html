@@ -134,7 +134,10 @@ body{
       v.src = pickIntroVideo();
       v.load();
       // 🔑 v8: 页面加载即后台fetch视频 → SW拦截→下载并写入缓存（第一次打开就缓存，第二次直接读缓存秒开）
-      if(!window.__isLebaApk && 'serviceWorker' in navigator && navigator.serviceWorker.controller){
+      // 🔴 v51【Boss定】APK永远走内置缓存动画，绝不下载！标记+URL参数双保险判断，
+      //   只有【真·网页版】才预下载；APK（标记或&apk=1）一律跳过fetch
+      var isWebViewFlag = window.__isLebaApk === true || /[?&]apk=1/.test(location.search);
+      if(!isWebViewFlag && 'serviceWorker' in navigator && navigator.serviceWorker.controller){
         fetch(v.src, {mode:'cors'}).catch(function(){});
       }
       return;
@@ -315,10 +318,30 @@ function playIntroThenGo(target){
     setTimeout(go, 600);    // 等淡出完成再跳
   };
   // 视频加载失败 → 三级回退：①jsDelivr → ②GP直连 → ③go()（本地都失败才跳）
-  var cdnTried = false, gpTried = false;
+  // 🔴 v51【Boss定】APK永远走内置缓存动画，绝不下载！
+  //   旧逻辑：APK内置失败 → 回退CDN jsDelivr/GP直连 → 就是"每次登录下载视频"的真凶！
+  //   新逻辑：APK(标记或&apk=1) → 内置失败只【重试内置】，绝不走CDN；网页版才保留三级回退
+  var isWebViewFlag = window.__isLebaApk === true || /[?&]apk=1/.test(location.search);
+  var cdnTried = false, gpTried = false, apkRetried = false;
   v.onerror = function(){
     var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
     var file = isMobile ? 'leba_intro_v_hd.mp4' : 'leba_intro_h_v2.mp4';
+    if(isWebViewFlag){
+      // 🚀 APK：内置视频失败 → 重新load内置（可能是解码器未就绪/临时错误），最多重试1次
+      //   绝不回退CDN！APK就是纯内置播放器
+      if(!apkRetried){
+        apkRetried = true;
+        var tier2 = window.__videoTier || 'mid';
+        v.src = 'https://appassets.androidplatform.net/assets/intro/intro_' + tier2 + '.mp4';
+        v.load();
+        started = false;
+        v.addEventListener('canplay', function(){ onLoadedData(); });
+        setTimeout(function(){ if(!started && !introDone) onLoadedData(); }, 800);
+        return;
+      }
+      go();  // 内置重试仍失败 → 直接进系统（不卡死）
+      return;
+    }
     if(!cdnTried){
       cdnTried = true;
       v.src = 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@0d1d1b3/' + file;
