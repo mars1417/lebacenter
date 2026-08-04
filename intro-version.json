@@ -1,9 +1,18 @@
 {
-  "version": 1,
+  "version": 2,
   "videos": {
-    "intro_high.mp4": {"url": "https://mars1417.github.io/lebacenter/intro/intro_high.mp4", "md5": "96902b78440c"},
-    "intro_mid.mp4": {"url": "https://mars1417.github.io/lebacenter/intro/intro_mid.mp4", "md5": "2775e331f2fa"},
-    "intro_low.mp4": {"url": "https://mars1417.github.io/lebacenter/intro/intro_low.mp4", "md5": "862a55f9129f"}
+    "intro_high.mp4": {
+      "url": "https://mars1417.github.io/lebacenter/intro/intro_high.mp4",
+      "md5": "60b6f4b82167"
+    },
+    "intro_mid.mp4": {
+      "url": "https://mars1417.github.io/lebacenter/intro/intro_mid.mp4",
+      "md5": "2775e331f2fa"
+    },
+    "intro_low.mp4": {
+      "url": "https://mars1417.github.io/lebacenter/intro/intro_low.mp4",
+      "md5": "862a55f9129f"
+    }
   },
-  "updated_at": "2026-08-04T22:00:00+08:00"
+  "updated_at": "2026-08-05T03:30:00+08:00"
 }
