@@ -1,7 +1,7 @@
-// 乐吧公益中心 — Service Worker v6
-// 强制刷新：更新cache版本，清除所有旧缓存
-const CACHE = 'leba-v6';
-const STATIC_CACHE = 'leba-static-v6';
+// 乐吧公益中心 — Service Worker v8
+// v8: 缓存优先 + 下载即写入（视频第一次下载后存入缓存，第二次起直接读缓存秒开）
+const CACHE = 'leba-v8';
+const STATIC_CACHE = 'leba-static-v8';
 
 const PRECACHE_URLS = [
   '/lebacenter/manifest.json',
@@ -20,7 +20,7 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(
     Promise.all([
       clients.claim(),
-      // 删除所有旧版缓存（leba-v2及更早版本）
+      // 删除所有旧版缓存（v7及更早版本）
       caches.keys().then(function(keys) {
         return Promise.all(
           keys.filter(function(k) { return k !== CACHE && k !== STATIC_CACHE; })
@@ -41,8 +41,18 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
-  // 静态资源 → 缓存优先
+  // 🔑 v8: 缓存优先；未命中→下载并写入缓存（视频等大文件下次直接读缓存）
   e.respondWith(
-    caches.match(e.request).then(function(r) { return r || fetch(e.request); })
+    caches.match(e.request).then(function(r) {
+      if (r) return r;  // 命中缓存 → 直接用
+      return fetch(e.request).then(function(res) {
+        if (res && res.ok && e.request.url.indexOf('leba_intro') > -1) {
+          // 视频下载成功 → 克隆一份存入缓存（不阻塞响应）
+          var cp = res.clone();
+          caches.open(CACHE).then(function(c) { c.put(e.request, cp); });
+        }
+        return res;
+      });
+    })
   );
 });

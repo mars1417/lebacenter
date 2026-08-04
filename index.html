@@ -133,6 +133,10 @@ body{
       v.preload = 'auto';
       v.src = pickIntroVideo();
       v.load();
+      // 🔑 v8: 页面加载即后台fetch视频 → SW拦截→下载并写入缓存（第一次打开就缓存，第二次直接读缓存秒开）
+      if(!window.__isLebaApk && 'serviceWorker' in navigator && navigator.serviceWorker.controller){
+        fetch(v.src, {mode:'cors'}).catch(function(){});
+      }
       return;
     }
     tries++;
@@ -179,8 +183,17 @@ function doRedirect(baseUrl){
   progPct.textContent = '100%';
   setTimeout(function(){
     var target = (baseUrl||'').replace(/\/+$/,'') + '/gateway/';
-    playIntroThenGo(target);
+    // 🔑 v8: 点按钮先确保视频已缓存（第一次=下载+写入缓存，第二次起=直接读缓存秒开）
+    ensureVideoCached().then(function(){ playIntroThenGo(target); });
   }, 400);
+}
+
+// 🔑 v8: 确保开场视频已缓存（SW拦截fetch→下载并写入缓存；已缓存则秒回）
+function ensureVideoCached(){
+  if(window.__isLebaApk) return Promise.resolve();  // APK内置视频，无需缓存
+  var url = pickIntroVideo();
+  if(!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) return Promise.resolve();
+  return fetch(url, {mode:'cors'}).catch(function(){ return; });
 }
 
 // 🎬 开场动画：按设备选视频源（手机→竖屏 / 电脑→横屏）→ 播完/跳过/兜底 → 进登录页
