@@ -198,9 +198,9 @@ function pickIntroVideo(){
     var tier = window.__videoTier || 'mid';
     return 'https://appassets.androidplatform.net/assets/intro/intro_' + tier + '.mp4';
   }
-  // 网页版/回退源：jsDelivr CDN(国内节点) + 540p超小版(870KB)！
-  // 2026-08-03 v43修复: 之前4MB 1080p→GP直连12s+卡死；720p→jsDelivr 4.7s。540p最快。
-  var file = isMobile ? 'leba_intro_v_web2.mp4' : 'leba_intro_h.mp4';
+  // 网页版/回退源：jsDelivr CDN(国内节点)
+  // 2026-08-04 统一到最新：手机→leba_intro_v_hd.mp4(1080p) / 电脑→leba_intro_h_v2.mp4(绿金小球)
+  var file = isMobile ? 'leba_intro_v_hd.mp4' : 'leba_intro_h_v2.mp4';
   return 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
 }
 function playIntroThenGo(target){
@@ -270,7 +270,7 @@ function playIntroThenGo(target){
   var cdnTried = false, gpTried = false;
   v.onerror = function(){
     var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
-    var file = isMobile ? 'leba_intro_v_web2.mp4' : 'leba_intro_h.mp4';
+    var file = isMobile ? 'leba_intro_v_hd.mp4' : 'leba_intro_h_v2.mp4';
     if(!cdnTried){
       cdnTried = true;
       v.src = 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
