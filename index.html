@@ -177,23 +177,38 @@ function fetchTunnelUrl(){
 
 function doRedirect(baseUrl){
   btn.textContent = '🔄 跳转中...';
-  setProgress(100, '✅ 即将进入系统');
+  setProgress(85, '⬇️ 准备开场动画...');
   progFill.classList.add('complete');
   progText.classList.add('done');
-  progPct.textContent = '100%';
   setTimeout(function(){
     var target = (baseUrl||'').replace(/\/+$/,'') + '/gateway/';
-    // 🔑 v8: 点按钮先确保视频已缓存（第一次=下载+写入缓存，第二次起=直接读缓存秒开）
-    ensureVideoCached().then(function(){ playIntroThenGo(target); });
+    // 🔑 v8: 点按钮先确保视频已缓存（第一次=真实下载进度+写入缓存，第二次起=秒回100%）
+    ensureVideoCached().then(function(){
+      setProgress(100, '✅ 动画已就绪，即将进入系统');
+      playIntroThenGo(target);
+    });
   }, 400);
 }
 
-// 🔑 v8: 确保开场视频已缓存（SW拦截fetch→下载并写入缓存；已缓存则秒回）
+// 🔑 v8: 确保开场视频已缓存——XHR真实下载进度（非一闪而过），SW拦截自动写入缓存
 function ensureVideoCached(){
   if(window.__isLebaApk) return Promise.resolve();  // APK内置视频，无需缓存
   var url = pickIntroVideo();
   if(!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) return Promise.resolve();
-  return fetch(url, {mode:'cors'}).catch(function(){ return; });
+  return new Promise(function(resolve){
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'blob';
+    xhr.onprogress = function(e){
+      if(e.lengthComputable){
+        var pct = Math.min(98, Math.round(e.loaded/e.total*100));
+        setProgress(pct, '⬇️ 缓存开场动画 ' + pct + '% (' + Math.round(e.loaded/1024/1024) + '/' + Math.round(e.total/1024/1024) + 'MB)');
+      }
+    };
+    xhr.onload = function(){ resolve(); };
+    xhr.onerror = function(){ resolve(); };  // 下载失败不阻塞跳转，走原回退链
+    xhr.send();
+  });
 }
 
 // 🎬 开场动画：按设备选视频源（手机→竖屏 / 电脑→横屏）→ 播完/跳过/兜底 → 进登录页
