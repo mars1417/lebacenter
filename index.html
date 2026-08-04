@@ -235,11 +235,12 @@ function pickIntroVideo(){
   if (isWebView) {
     // v46 设备分级：MainActivity用MediaCodecList探测注入 window.__videoTier
     //   high=1080p / mid=720p / low=540p，全部内置在APK assets/intro/
-    // 🔴 v52修复【Boss实测v51闪退跳登录】：appassets在部分手机拦截失败→onerror→闪退。
-    //   终极方案：直接用 file:///android_asset/ 直读本地文件（Java已放开AllowFileAccess），
-    //   100%可靠，不依赖WebViewAssetLoader拦截器。appassets仅作兼容备用。
+    // 🔴 v52修复【Boss实测v51闪退跳登录】：
+    //   file:// 被Chromium安全策略拒绝(错误4 URL safety check)——必须用appassets协议，
+    //   但appassets依赖WebViewAssetLoader拦截(部分国产ROM失败)。Java层已加【手动拦截兜底】：
+    //   appassets URL → 直接读assets流 + Range/206，双保险100%可靠。
     var tier = window.__videoTier || 'mid';
-    return 'file:///android_asset/intro/intro_' + tier + '.mp4';
+    return 'https://appassets.androidplatform.net/assets/intro/intro_' + tier + '.mp4';
   }
   // 网页版/回退源：jsDelivr CDN(国内节点)
   // 2026-08-04 统一到最新：手机→leba_intro_v_hd.mp4(1080p) / 电脑→leba_intro_h_v2.mp4(绿金小球)
@@ -341,8 +342,8 @@ function playIntroThenGo(target){
       if(!apkRetried){
         apkRetried = true;
         var tier2 = window.__videoTier || 'mid';
-        // v52: 重试也用 file:// 直读（与pickIntroVideo一致，不依赖拦截器）
-        v.src = 'file:///android_asset/intro/intro_' + tier2 + '.mp4';
+        // v52: 重试也用appassets（Java手动拦截兜底，file://被安全策略拒绝不可用）
+        v.src = 'https://appassets.androidplatform.net/assets/intro/intro_' + tier2 + '.mp4';
         v.load();
         started = false;
         v.addEventListener('canplay', function(){ onLoadedData(); });
