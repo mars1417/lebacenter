@@ -193,7 +193,11 @@ function doRedirect(baseUrl){
 // 🔑 v8: 真实下载开场视频到浏览器缓存（XHR进度实时显示，SW拦截自动写入CacheStorage）
 //    不依赖 serviceWorker.controller——首次访问SW未接管时也正常下载（走HTTP缓存）
 function ensureVideoCached(){
-  if(window.__isLebaApk) return Promise.resolve();  // APK内置视频，无需缓存
+  // 🔴 v48修复【Boss实测：APK装v49还走线上下载】：
+  //   旧代码只查 window.__isLebaApk 标记——但标记是 onPageStarted 异步注入的，
+  //   用户快速点「进入系统」时标记可能还没到 → 误走XHR下载CDN视频 → 卡！
+  //   必须标记 + URL参数(&apk=1) 双保险判断（URL参数在页面加载时就可见）
+  if(window.__isLebaApk || /[?&]apk=1/.test(location.search)) return Promise.resolve();  // APK内置视频，无需缓存
   var url = pickIntroVideo();
   return new Promise(function(resolve){
     var xhr = new XMLHttpRequest();
