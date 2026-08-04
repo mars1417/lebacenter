@@ -234,10 +234,12 @@ function pickIntroVideo(){
   var isWebView = window.__isLebaApk === true || /[?&]apk=1/.test(location.search);
   if (isWebView) {
     // v46 设备分级：MainActivity用MediaCodecList探测注入 window.__videoTier
-    //   high=1080p High 6.5MB / mid=1080p Main 2.8MB / low=720p Main 1.7MB
-    //   全部内置在APK assets/intro/，appassets协议被shouldInterceptRequest拦截→本地读取GPU硬解
+    //   high=1080p / mid=720p / low=540p，全部内置在APK assets/intro/
+    // 🔴 v52修复【Boss实测v51闪退跳登录】：appassets在部分手机拦截失败→onerror→闪退。
+    //   终极方案：直接用 file:///android_asset/ 直读本地文件（Java已放开AllowFileAccess），
+    //   100%可靠，不依赖WebViewAssetLoader拦截器。appassets仅作兼容备用。
     var tier = window.__videoTier || 'mid';
-    return 'https://appassets.androidplatform.net/assets/intro/intro_' + tier + '.mp4';
+    return 'file:///android_asset/intro/intro_' + tier + '.mp4';
   }
   // 网页版/回退源：jsDelivr CDN(国内节点)
   // 2026-08-04 统一到最新：手机→leba_intro_v_hd.mp4(1080p) / 电脑→leba_intro_h_v2.mp4(绿金小球)
@@ -327,12 +329,20 @@ function playIntroThenGo(target){
     var isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
     var file = isMobile ? 'leba_intro_v_hd.mp4' : 'leba_intro_h_v2.mp4';
     if(isWebViewFlag){
-      // 🚀 APK：内置视频失败 → 重新load内置（可能是解码器未就绪/临时错误），最多重试1次
-      //   绝不回退CDN！APK就是纯内置播放器
+      // 🔴 v52诊断版：弹出完整诊断信息，定位内置视频为什么加载失败
+      try{
+        var eMsg = (v.error && (v.error.code || v.error.message)) ? (v.error.code + ' ' + v.error.message) : 'unknown';
+        alert('🎬 内置动画加载失败\n\n错误: ' + eMsg +
+              '\n源: ' + (v.currentSrc || v.src) +
+              '\n标记: ' + window.__isLebaApk +
+              '\n档位: ' + (window.__videoTier || 'mid') +
+              '\nURL参数: ' + location.search);
+      }catch(ae){}
       if(!apkRetried){
         apkRetried = true;
         var tier2 = window.__videoTier || 'mid';
-        v.src = 'https://appassets.androidplatform.net/assets/intro/intro_' + tier2 + '.mp4';
+        // v52: 重试也用 file:// 直读（与pickIntroVideo一致，不依赖拦截器）
+        v.src = 'file:///android_asset/intro/intro_' + tier2 + '.mp4';
         v.load();
         started = false;
         v.addEventListener('canplay', function(){ onLoadedData(); });
