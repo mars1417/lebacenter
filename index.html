@@ -248,6 +248,9 @@ function playIntroThenGo(target){
     window.location.href = target;
   }
   // 🎬 v45【Boss定】视频必须放完(ended)→淡出→才跳转！移除13.5s强制跳、移除play失败3次就go
+  // 🔊 v47【Boss定】要有声音！点击进入系统=用户手势→浏览器允许有声自动播放→取消静音，音乐响起
+  v.muted = false;
+  v.volume = 1.0;
   v.src = pickIntroVideo();
   v.load();
   // 慢放0.8倍（10s→12.5s），更从容的入场节奏
@@ -267,7 +270,14 @@ function playIntroThenGo(target){
       p.then(function(){
         v.style.opacity = '1';  // 播放成功 → 淡入
       }).catch(function(){
-        // ⚠️ v45: play失败【不跳转】！只是视频未就绪，1s后重试等待就绪
+        // ⚠️ v45: play失败【不跳转】！只是视频未就绪/有声被浏览器拦截，1s后重试等待就绪
+        // 🔊 v47: 若因有声播放被自动播放策略拦截 → 退回静音保画面，用户首次触摸/点击即开声
+        if(!v.muted){
+          v.muted = true;
+          var enableSound = function(){ v.muted = false; v.volume = 1.0; try{ v.play(); }catch(e){} };
+          document.addEventListener('touchstart', enableSound, {once:true});
+          document.addEventListener('click', enableSound, {once:true});
+        }
         setTimeout(attemptPlay, 1000);
       });
     } else {
