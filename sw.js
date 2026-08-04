@@ -1,7 +1,7 @@
-// 乐吧公益中心 — Service Worker v3
+// 乐吧公益中心 — Service Worker v6
 // 强制刷新：更新cache版本，清除所有旧缓存
-const CACHE = 'leba-v3';
-const STATIC_CACHE = 'leba-static-v3';
+const CACHE = 'leba-v6';
+const STATIC_CACHE = 'leba-static-v6';
 
 const PRECACHE_URLS = [
   '/lebacenter/manifest.json',
