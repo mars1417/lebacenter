@@ -1,7 +1,7 @@
-// 乐吧公益中心 — Service Worker v8
-// v8: 缓存优先 + 下载即写入（视频第一次下载后存入缓存，第二次起直接读缓存秒开）
-const CACHE = 'leba-v8';
-const STATIC_CACHE = 'leba-static-v8';
+// 乐吧公益中心 — Service Worker v9
+// v9: 缓存优先 + 下载即写入（视频第一次下载后存入缓存，第二次起直接读缓存秒开）
+const CACHE = 'leba-v9';
+const STATIC_CACHE = 'leba-static-v9';
 
 const PRECACHE_URLS = [
   '/lebacenter/manifest.json',
