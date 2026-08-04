@@ -235,7 +235,7 @@ function pickIntroVideo(){
   // 网页版/回退源：jsDelivr CDN(国内节点)
   // 2026-08-04 统一到最新：手机→leba_intro_v_hd.mp4(1080p) / 电脑→leba_intro_h_v2.mp4(绿金小球)
   var file = isMobile ? 'leba_intro_v_hd.mp4' : 'leba_intro_h_v2.mp4';
-  return 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
+  return 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@0d1d1b3/' + file;
 }
 function playIntroThenGo(target){
   window._introTarget = target;
@@ -307,7 +307,7 @@ function playIntroThenGo(target){
     var file = isMobile ? 'leba_intro_v_hd.mp4' : 'leba_intro_h_v2.mp4';
     if(!cdnTried){
       cdnTried = true;
-      v.src = 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@main/' + file;
+      v.src = 'https://cdn.jsdelivr.net/gh/mars1417/lebacenter@0d1d1b3/' + file;
       v.load();
       started = false;
       v.addEventListener('canplay', function(){ onLoadedData(); });
